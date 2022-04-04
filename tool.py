@@ -4,8 +4,9 @@ Author    : KoGe
 Date      : 2022-03-19 22:47:17
 Message   : tools
 '''
-from get_graph_data import get_data
+from get_graph_data import get_data,get_webdata
 import json
+import os
 '''
 @message  : to get a set of scholar's school
 @param        {*} node_list : the list of the scholar
@@ -48,8 +49,11 @@ def schoolData(scholar_list, id2label):
 @return       {*}scholar's node, other's node, link
 '''
 def mergeData():
-   
-    res = get_data()
+    if os.path.exists('graph_data.json'):
+        res = get_data()
+    else:
+        get_webdata()
+        res = get_data()    
     nodes = res[0]["nodes"]
     links = res[0]["links"]
     
