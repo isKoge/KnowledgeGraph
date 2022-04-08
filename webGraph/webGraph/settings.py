@@ -77,7 +77,7 @@ WSGI_APPLICATION = 'webGraph.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'djangomysql',
+        'NAME': 'web_of_kg',
         'USER':'root',
         'PASSWORD':'mysql',
         'HOST':'localhost',
