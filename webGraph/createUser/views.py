@@ -35,7 +35,8 @@ def register(request):
 @login_required
 def profile(request, pk):
     user = get_object_or_404(User, pk=pk)
-    return render(request, 'users/profile.html', {'user': user})
+    user_profile = get_object_or_404(UserProfile, user=user)
+    return render(request, 'users/profile.html', {'user': user, 'user_profile': user_profile})
 
 @login_required
 def profile_update(request, pk):
