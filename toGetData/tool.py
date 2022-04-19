@@ -4,16 +4,17 @@ Author    : KoGe
 Date      : 2022-03-19 22:47:17
 Message   : tools
 '''
+from multiprocessing import BufferTooShort
 from get_graph_data import get_data,get_webdata
 import json
 import os
 '''
-@message  : to get a set of scholar's school
+@message  : 获取学校信息
 @param        {*} node_list : the list of the scholar
 @return       {*} school_node : the node of school
 @return       {*} school_link : the relation of school
 '''
-def schoolData(scholar_list, id2label):
+def schoolData(scholar_list):
 
     school_link = []
     school_node = []
@@ -22,7 +23,7 @@ def schoolData(scholar_list, id2label):
     for i in scholar_list :
         school_rel = {}
         if i['work_unit'] :
-            school_rel['source'] = i['id']
+            school_rel['source'] = i['acc_id']
             school_rel['label'] = 'work_for_school'
             school_rel['target'] = i['work_unit']
 
@@ -34,87 +35,85 @@ def schoolData(scholar_list, id2label):
 
     for a in school_list :
         b = {}
-        b['id'] = a
-        b['label'] = a
-        b['type'] = 'school'
+        b['name'] = a
         school_node.append(b)
 
-        id2label[a] = a
-
-    return school_node, school_link, id2label
+    return school_node, school_link
 
 '''
-@message  : to get a total list and separate the scholar, the other such as paper or project
+@message  : 获取两部分的node和link
 @param        {*} 
 @return       {*}scholar's node, other's node, link
 '''
 def mergeData():
+
+    # 获取数据，如果存在则加载，不存在则爬取
     if os.path.exists('graph_data.json'):
         res = get_data()
     else:
         get_webdata()
         res = get_data()    
+
+    # 爬取数据存在两部分实体和关系，组合，去除重复的
     nodes = res[0]["nodes"]
-    links = res[0]["links"]
-    
     nodes.extend(res[1]["nodes"])
-    links.extend(res[1]["links"])
+    nodes_unique = remove_thesame(nodes)
 
     node_scholar = []
     node_other = []
-    id2label = {}
 
-    for i in nodes:
+    # 存储对应关系,一个学术成就对应多位作者
+    other2acc_id = {}
 
-        id2label[i['id']] = i['label']
+    for i in nodes_unique:
         beToAdd = i.pop('properties')
-        i.update(beToAdd)
-
         if i['type'] == 'SCHOLAR':
-            node_scholar.append(i)
+            node_scholar.append(beToAdd)
         else:
-            node_other.append(i)
+            node_other.append(beToAdd)
+            nodeName = beToAdd['name']
+            nodeId = beToAdd['acc_id']
 
-    node1 = remove_thesame(node_scholar)
-    nodeOther = remove_thesame(node_other)
-    node2 = node_unique(nodeOther)
+            if nodeName not in other2acc_id:
+                other2acc_id[nodeName] = [i['type']]
+            other2acc_id[nodeName].append(nodeId)
 
-    link1 = remove_noneexit(nodes, links, node_other)
-    node3, link2, id2label =schoolData(node1, id2label)
+    node2 = node_unique(node_other)
+    node3, linkData=schoolData(node_scholar)
+    nodeData = node_scholar + node2 + node3
 
-    nodeData = node1 + node2 + node3
-    linkData = link1 + link2
+    other2acc_id = remove_noneexit(node_scholar,other2acc_id)
 
     with open("node_data.json", "w", encoding='utf-8') as f:
         json.dump(nodeData, f)
     #   f.write(resp)
     with open("link_data.json", "w", encoding='utf-8') as f:
         json.dump(linkData, f)
-    with open("id2label_data.json", "w",) as f:
-        json.dump(id2label, f)
-    return nodeData, linkData, id2label
+    return nodeData, linkData, other2acc_id
     
 '''
-@message  : remove the unexit node in the link and merge the link 
+@message  : 去除不存在节点的关系映射 
 @param    : the list of node['id']    {*} n
 @param    : the list of link    {*} l
 @return   : list    {*}
 '''
-def remove_noneexit(nodes, links, node_other):
+def remove_noneexit(nodes, other2id):
 
-    node_scholar_id_list = [i['id'] for i in nodes]
-    node_other_id_list = [i['id'] for i in node_other]
-    node_scholar_id_unique = list(set(node_scholar_id_list))
-    node_other_id_unique = list(set(node_other_id_list))
+    id_list = [i['acc_id'] for i in nodes]
+    id_unique = list(set(id_list))
 
-    rel_list = []
-    for i in links :
-        if i['label'] == 'like':continue
-        elif (i['source'] not in node_scholar_id_unique) or (i['target'] not in node_other_id_unique):continue
-        rel_list.append(i)
-    return rel_list
+    rel_dict = {}
+    for k,v in other2id.items():
+        acc_list = []
+        acc_list.append(v.pop(0))
+        while v:
+            a = v.pop()
+            if a not in id_unique:continue
+            acc_list.append(a)
+        rel_dict[k] = acc_list
+    return rel_dict
 '''
-@message  : remove the same in the list 
+@message  : 通过 id 判别是否在节点或关系队列中存在，去除重复多余的 
 @param        {*} the_list
 @return       {*}
 '''
@@ -153,7 +152,7 @@ def node_unique(nodes):
     label_list = []
     node_list = []
     for i in nodes:
-        if i['label'] not in label_list :
-                label_list.append(i['label'])
+        if i['name'] not in label_list :
+                label_list.append(i['name'])
                 node_list.append(i)
     return node_list

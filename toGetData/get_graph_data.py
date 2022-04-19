@@ -2,12 +2,13 @@
 '''
 Author    : KoGe
 Date      : 2022-03-18 11:37:37
-Message   : to get the https://res.scholat.com/scholat/scripts/kg/data.gzjs?_dc=5e8ed267fe0 data
+Message   : 获取 https://res.scholat.com/scholat/scripts/kg/data.gzjs?_dc=5e8ed267fe0 数据
 '''
 
 import requests
 import json
 
+# 爬取
 def get_webdata():
     
     headers = {
@@ -27,6 +28,7 @@ def get_webdata():
       print("载入文件完成...")
     # res_list = json.loads(resp)
 
+# 读取
 def get_data():
   with open("graph_data.json", "r", encoding='utf-8') as f:
     res = json.load(f)

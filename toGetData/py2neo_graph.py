@@ -19,7 +19,14 @@ def create_node(n, graph):
     node_list = []
 
     for i in tqdm(n):
-        n1 = Node(i['type'], **i)
+        if 'home_page' in i.keys():
+            n1 = Node('scholar', **i)
+        elif 'application' in i.keys():
+            n1 = Node('project', **i)
+        elif 'paper_source' in i.keys():
+            n1 = Node('paper', **i)
+        else:
+            n1 = Node('school', **i)
         node_list.append(n1)
 
     subnodes = Subgraph(node_list)
@@ -32,26 +39,30 @@ def create_node(n, graph):
 @param        {*} l the list of relationship
 @return       {*}
 '''
-def create_link(ls, id2label, graph):
+def create_link(ls, oth2id, graph):
 
     matcher = NodeMatcher(graph)
 
-    for i in tqdm(ls):
-            
-        matcher = NodeMatcher(graph)
-        node1 = matcher.match("SCHOLAR", id = i['source']).first()
-
-        label_name = i['label'].split('_')[-1].lower()
-
-        targetLabel = id2label[i['target']]
-        node2 = matcher.match(label_name, label = targetLabel).first()
-
+    # 创建学者与其工作学校的关系
+    for i in tqdm(ls):  
+        node1 = matcher.match('scholar', acc_id = i['source']).first()
+        node2 = matcher.match('school', name = i['target']).first()
         one_link = Relationship(node1, i["label"], node2)
-
         graph.create(one_link)
+    print('Create the relationship of school success !')
 
+    # 创建学者与其学术著作的关系
+    for k,v in tqdm(oth2id.items()):
+        type = v.pop(0)
+        edge_label = f'Author_of_{type}'
+        node2 = matcher.match(type, name = k).first()
+        while v :
+            a = v.pop(0)
+            node1 = matcher.match('scholar', acc_id = a).first()
+            one_link = Relationship(node1, edge_label, node2)
+            graph.create(one_link)
     print('Create the relationship of scholar success !')
-
+    
 '''
 @message  : to make a graph include create node and link
 @param        {*}
@@ -61,10 +72,10 @@ def makeGraph():
     g = Graph("http://localhost:7474", auth=("neo4j","123456"))
     g.delete_all()
 
-    nodeData, relationData, m = mergeData()
+    nodeData, linkData, other2id = mergeData()
  
     create_node(nodeData, g)
-    create_link(relationData, m, g)
+    create_link(linkData, other2id, g)
 
 
 
