@@ -47,7 +47,8 @@ def create_link(ls, oth2id, graph):
     for i in tqdm(ls):  
         node1 = matcher.match('scholar', acc_id = i['source']).first()
         node2 = matcher.match('school', name = i['target']).first()
-        one_link = Relationship(node1, i["label"], node2)
+        rel_message1 = {'label':i['label']}
+        one_link = Relationship(node1, i["label"], node2, **rel_message1)
         graph.create(one_link)
     print('Create the relationship of school success !')
 
@@ -55,11 +56,12 @@ def create_link(ls, oth2id, graph):
     for k,v in tqdm(oth2id.items()):
         type = v.pop(0)
         edge_label = f'Author_of_{type}'
+        rel_message2 = {'label':edge_label}
         node2 = matcher.match(type, name = k).first()
         while v :
             a = v.pop(0)
             node1 = matcher.match('scholar', acc_id = a).first()
-            one_link = Relationship(node1, edge_label, node2)
+            one_link = Relationship(node1, edge_label, node2, **rel_message2)
             graph.create(one_link)
     print('Create the relationship of scholar success !')
     
