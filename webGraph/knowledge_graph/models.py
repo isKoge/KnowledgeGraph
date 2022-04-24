@@ -20,6 +20,11 @@ class Neo4j():
 		answer = self.graph.run("MATCH (n1:scholar)- [rel] -> (n2) RETURN n1,rel,n2" ).data()
 		return answer
 
+	# 根据entity的名称返回关系
+	def getEntityRelationbyEntity(self,value):
+		answer = self.graph.run("MATCH (entity1) - [rel] -> (entity2)  WHERE entity1.name = \"" +str(value)+"\" RETURN rel,entity2").data()
+		return answer
+
 	# 通过实体1输出 实体1->关系->实体
 	def findRelationByEntity1(self,entity1):
 		answer = self.graph.run("MATCH (n1:scholar {name:\"" + entity1 + "\"})- [rel] -> (n2) RETURN n1,rel,n2" ).data()
