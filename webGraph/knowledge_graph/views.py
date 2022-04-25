@@ -8,6 +8,7 @@ from django.shortcuts import render
 from knowledge_graph.models import Neo4j
 import json
 from django.contrib.auth.decorators import login_required
+from knowledge_graph.kgforms import *
 
 # 链接 Neo4j 
 neo_con = Neo4j()
@@ -18,28 +19,6 @@ neo_con.connectDB()
 def index(request):  # index页面需要一开始就加载的内容写在这里
 	context = {}
 	return render(request, 'kg/index.html', context)
-
-@login_required
-def search_entity(request):
-	ctx = {}
-	#根据传入的实体名称搜索出关系
-	if(request.GET):
-		entity = request.GET['user_text']
-		#连接数据库
-		db = neo_con
-		entityRelation = db.getEntityRelationbyEntity(entity)
-		if len(entityRelation) == 0:
-			#若数据库中无法找到该实体，则返回数据库中无该实体
-			ctx= {'title' : '<h1>暂未找到相应的匹配</h1>'}
-			return render(request,'kg/entity.html',{'ctx':json.dumps(ctx,ensure_ascii=False)})
-		else:
-			#返回查询结果
-			#将查询结果按照"关系出现次数"的统计结果进行排序
-			# entityRelation = sortDict(entityRelation)
-
-			return render(request,'kg/entity.html',{'entityRelation':json.dumps(entityRelation,ensure_ascii=False)})
-
-	return render(request,"kg/entity.html",{'ctx':ctx})
 
 @login_required
 def search_relation(request):
@@ -100,3 +79,35 @@ def search_relation(request):
 			return render(request,'kg/relation.html',{'searchResult':json.dumps(searchResult,ensure_ascii=False)})
 
 	return render(request,'kg/relation.html',{'ctx':ctx}) 
+
+@login_required
+def Node_update(request):
+	db = neo_con 
+	if request.method == 'POST':
+		select_type = request.POST.get('select_type')
+		node_type = ''
+		if select_type == '学者':
+			form = ScholarForm(request.POST)
+			node_type = 'scholar'
+
+		elif select_type == '论文':
+			form = PaperNodeForm(request.POST)
+			node_type = 'paper'
+
+		elif select_type == '项目':
+			form = ProjectNodeForm(request.POST)
+			node_type = 'project'
+
+		if form.is_valid():
+			message = form.cleaned_data
+			db.createNode(node_type, message)
+
+	else:
+		form_scholar = ScholarForm()
+		form_paper = PaperNodeForm()
+		form_project = ProjectNodeForm()
+	return render(request, 'kg/Nodeupdate.html', {'form_scholar': form_scholar, 'form_paper': form_paper, 'form_project': form_project})
+
+
+def Rel_update(request):
+	pass

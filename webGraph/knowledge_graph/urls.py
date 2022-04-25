@@ -10,5 +10,6 @@ app_name = 'kg'
 
 urlpatterns = [
     re_path(r'^search_relation',search_relation, name='search_relation'),
-    re_path(r'^search_entity',search_entity, name='search_entity'),
+    re_path(r'^Node_update',Node_update, name='Node_update'),
+    # re_path(r'^Rel_update',Rel_update, name='Rel_update')
 ]
