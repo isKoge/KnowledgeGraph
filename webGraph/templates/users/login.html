@@ -1,0 +1,43 @@
+<!--
+ * @Author    : KoGe
+ * @Date      : 2022-04-08 19:27:18
+ * @Message   : 
+-->
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body> -->
+{% extends "base.html" %} 
+{% block mainbody %}
+    {% if message %}
+    {{ message }}
+    {% endif %}
+    <div class="form-group">
+        <form method="post" action="" enctype="multipart/form-data">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="form-group ">
+                    {{ field.errors }}
+                    {{ field.label_tag }}{{ field }}
+                    {% if field.help_text %}
+                        <p class="help">{{ field.help_text|safe }}</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            <div class="btn">
+                <input type="submit" value="Login">
+            </div>
+        </form>
+        <h2 class="my-href pull-right">
+            <a href="/accounts/register" >Register Link</a>
+        </h2>
+ 
+    </div>
+    {% endblock %}
+<!-- </body>
+</html> -->

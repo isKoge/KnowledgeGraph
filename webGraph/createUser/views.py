@@ -32,6 +32,27 @@ def register(request):
         form = RegistrationForm()
     return render(request, 'users/registration.html', {'form':form})
 
+def login(request):
+    if request.method == 'POST':
+        form = LoginForm(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
+ 
+            user = auth.authenticate(username=username, password=password)
+ 
+            if user is not None and user.is_active:
+                auth.login(request, user)
+                return HttpResponseRedirect(reverse('users:index', args=[user.id]))
+                # return HttpResponseRedirect(reverse('users:profile', args=[user.id]))
+            else:
+                # 登录失败
+                return render(request, 'users/login.html', {'form': form, 'message':'请输入正确的密码 ！'})
+    else:
+        form = LoginForm()
+ 
+    return render(request, 'users/login.html', {'form': form})
+
 @login_required
 def profile(request, pk):
     user = get_object_or_404(User, pk=pk)
@@ -66,30 +87,15 @@ def profile_update(request, pk):
         form = ProfileForm(default_data)
     return render(request,'users/profile_update.html',{'form': form,'user': user})
 
-def login(request):
-    if request.method == 'POST':
-        form = LoginForm(request.POST)
-        if form.is_valid():
-            username = form.cleaned_data['username']
-            password = form.cleaned_data['password']
- 
-            user = auth.authenticate(username=username, password=password)
- 
-            if user is not None and user.is_active:
-                auth.login(request, user)
-                return HttpResponseRedirect(reverse('users:profile', args=[user.id]))
-            else:
-                # 登录失败
-                return render(request, 'users/login.html', {'form': form, 'message':'Wrong password Please Try agagin'})
-    else:
-        form = LoginForm()
- 
-    return render(request, 'users/login.html', {'form': form})
- 
+@login_required
+def index(request, pk):  # index页面需要一开始就加载的内容写在这里
+	context = {}
+	return render(request, 'kg/index.html', context)
+
 @login_required
 def logout(request):
     auth.logout(request)
-    return HttpResponseRedirect("/accounts/login/")
+    return HttpResponseRedirect("/accounts/login")
  
 @login_required
 def pwd_change(request, pk):
