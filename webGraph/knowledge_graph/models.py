@@ -5,7 +5,7 @@ Date      : 2022-04-14 15:21:24
 Message   : 
 '''
 from django.db import models
-from py2neo import Graph, Node, Relationship, NodeMatcher, Subgraph
+from py2neo import Graph, Node, Relationship, NodeMatcher, Subgraph, RelationshipMatcher
 
 class Neo4j():
 	graph = None
@@ -70,54 +70,116 @@ class Neo4j():
 		return answer
 
 	# 根据节点属性寻找节点
-	def findByNode(self, node_key, node_type=None):
+	def findByNode(self, node_type=None, **node_key):
 		matcher = NodeMatcher(self.graph)
 		if node_type:
 			answer = matcher.match(node_type, **node_key)
 		else:
 			answer = matcher.match(labels=None, **node_key)
-    	
+		return answer
+	
+	# 根据两个节点查找关系，可查阅两个学者关系
+	def findRelBy2Node(self, n1_key, n2_key, n1_type=None, n2_type=None, **rel_message):
+		matcher = RelationshipMatcher(self.graph)
+		n1 = self.findByNode(self.graph, a=n1_type, **n1_key).first()
+		n2 = self.findByNode(self.graph, a=n2_type, **n2_key).first()
+		answer = []
+		if ('home_page' in n1) and ('home_page' in n2):
+			n1_name = n1.get('name')
+			n2_name = n2.get('name')
+			# print(n1_name,n2_name)
+			searchResult = self.graph.run("MATCH p=(n1:scholar {name:\"" + n1_name + "\"})-[*..2]-(n2:scholar{name:\""+  n2_name +"\"}) RETURN p").data()	
+			if searchResult:
+				for i in searchResult:
+					a = i['p'].relationship
+					for r in a:
+						temp = {}
+						temp['n1'] = r.start_node
+						temp['n2'] = r.end_node
+						temp['rel'] = {}
+						if 'paper_id' in temp['n2']:
+							temp['rel']['label'] = 'Author_of_paper'
+						elif 'application' in temp['n2']:
+							temp['rel']['label'] = 'Author_of_project'
+						else:
+							temp['rel']['label'] = 'work_for_school'
+						answer.append(temp)
+			else:
+				print("不存在此关系！")
+		else:
+			temp = {}
+			searchResult = matcher.match((n1,n2), r_type=None, **rel_message)
+			if searchResult:
+				relResult = list(searchResult)[0]
+				temp['n1'] = relResult.start_node
+				temp['n2'] = relResult.end_node
+				temp['rel'] = {}
+				temp['rel']['label'] = relResult.get('label')
+				answer.append(temp)
+			else:
+				print("不存在此关系！")
+		return answer
 
 	# 创建节点
-	def createNode(self, node_type, node_message):
+	def createNode(self, node_type, **node_message):
 		n = Node(node_type, **node_message)
 		self.graph.create(n)
-		return '创建节点成功！'
+		print('创建节点成功！')
+		return 1
 
 	# 创建关系
-	def createRel(self, n1_type, n1_key, n2_type, n2_key):
+	def createRel(self, n1_type, n1_key, n2_type, n2_key, **rel_message):
 		matcher = NodeMatcher(self.graph)
 		n1 = matcher.match(n1_type, **n1_key).first()
 		n2 = matcher.match(n2_type, **n2_key).first()
 		label = ''
 		if n2_type == 'school':
-			lael = 'work_for_school'
+			label = 'work_for_school'
 		else:
 			label = f'Author_of_{n2_type}'
-		rel_message = {'label': label}
+		rel_message['label'] = label 
 		one_link = Relationship(n1, label, n2, **rel_message)
 		self.graph.create(one_link)
-		return '创建关系成功！'
+		print('创建关系成功！')
+		return 1
 		
 	# 修改节点信息
-	def updateNode(self, node_key, update_message, label=None):
-		matcher = NodeMatcher(self.graph)
-		answer = list(matcher.match(label, **node_key))
+	def updateNode(self, update_message, node_type=None, **node_key):
+		answer = list(self.findByNode(node_type, **node_key))
 		for k,v in update_message.items():
 			answer[0][k] = v
 		sub = Subgraph(answer)
 		self.graph.push(sub)
-		return '修改节点成功！'
+		print('修改节点成功')
+		return 1
 	
 	# 修改关系信息
 	def updateRel(self):
 		pass
 
 	# 删除节点
-	def delNode(self):
-		pass
+	def delNode(self, node_type=None, **node_key):
+		answer = self.findByNode(node_type, **node_key)
+		if answer:
+			self.graph.delete(answer)
+			print('删除节点成功！')
+			return 1
+		else:
+			print('删除节点不存在！')
 	
 	# 删除关系
-	def delRel(self):
-		pass
-
+	def delRel(self, n1_key, n2_key, n1_type, n2_type, **rel_message):
+		n1 = self.findByNode(node_type=n1_type, **n1_key)
+		n2 = self.findByNode(node_type=n2_type, **n2_key)
+		if n1 and n2:
+			r1 = self.findRelBy2Node(n1_key, n2_key, **rel_message)
+			if len(r1) == 1:
+				n1_name = list(n1)[0].get('name')
+				n2_name = list(n2)[0].get('name')
+				self.graph.run("MATCH (n1) - [rel] - (n2) WHERE n1.name=\"" + n1_name + "\"and n2.name=\"" + n2_name + "\" DELETE rel")
+				print("删除关系成功！")
+				return 1
+			else:
+				print("不存在待删除关系！")
+		else:
+			print("不存在待删除关系的节点！")
