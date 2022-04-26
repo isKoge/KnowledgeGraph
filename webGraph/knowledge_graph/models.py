@@ -145,13 +145,15 @@ class Neo4j():
 		
 	# 修改节点信息
 	def updateNode(self, update_message, node_type=None, **node_key):
-		answer = list(self.findByNode(node_type, **node_key))
-		for k,v in update_message.items():
-			answer[0][k] = v
-		sub = Subgraph(answer)
-		self.graph.push(sub)
-		print('修改节点成功')
-		return 1
+		searchResult = self.findByNode(node_type, **node_key)
+		if searchResult:
+			answer = list(searchResult)
+			for k,v in update_message.items():
+				answer[0][k] = v
+			sub = Subgraph(answer)
+			self.graph.push(sub)
+			print('修改节点成功')
+			return 1
 	
 	# 修改关系信息
 	def updateRel(self):
