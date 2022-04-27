@@ -297,7 +297,7 @@
 	        text: ''
 	    },
 	    tooltip: {},
-	    animationDurationUpdate: 1500,
+	    animationDurationUpdate: 150,
 	    animationEasingUpdate: 'quinticInOut',
 	    label: {
 	        normal: {
@@ -358,7 +358,8 @@
 	                }
 	            },
 	            force: {
-	                repulsion: 1000
+	                repulsion: 400,
+					edgeLength:[100,500]
 	            },
 	            edgeSymbolSize: [4, 50],
 	            edgeLabel: {
@@ -374,15 +375,18 @@
 	            links: links,
 	            lineStyle: {
 	                normal: {
-	                    opacity: 0.9,
-	                    width: 1.3,
+	                    opacity: 0.5,
+	                    width: 1.1,
 	                    curveness: 0,
 	                    color:"#262626",
 	                }
 	            }
 	        }
-	    ]
+	    ],
+	
+		
 	};
+
 	// 使用刚指定的配置项和数据显示图表。
 	myChart.setOption(option);
 

@@ -26,6 +26,8 @@ def index(request):  # index页面需要一开始就加载的内容写在这里
 def search_relation(request):
 	ctx = {}
 	db = neo_con
+	searchResult = db.zhishitupu()
+			
 	if(request.GET):
 		ctx= {'title' : '<h1>暂未找到相应的匹配</h1>'}
 		
@@ -88,8 +90,8 @@ def search_relation(request):
 			if len(searchResult) > 0:
 				return render(request,'kg/relation.html',{'searchResult':json.dumps(searchResult,ensure_ascii=False)})
 				
-	return render(request,'kg/relation.html',{'ctx':ctx})
-
+	# return render(request,'kg/relation.html',{'ctx':ctx})
+	return render(request,'kg/relation.html',{'searchResult':json.dumps(searchResult,ensure_ascii=False)})
 def selectForm(formType, select_type):
 	if formType == 'n':
 		if select_type == 1:
@@ -267,3 +269,6 @@ def jsReturn(request):
 	answer = list(searchResult)
 	print(answer)
 	return HttpResponse(json.dumps(answer,ensure_ascii=False))
+
+def all(request):
+	return render(request,'kg/all.html')

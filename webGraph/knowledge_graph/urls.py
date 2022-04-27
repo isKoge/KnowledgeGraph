@@ -12,5 +12,6 @@ urlpatterns = [
     re_path(r'^search_relation',search_relation, name='search_relation'),
     re_path(r'^NodeManage',NodeManage, name='Node_update'),
     re_path(r'^RelManage',RelManage, name='RelManage'),
-    re_path(r'^js',jsReturn, name='jsReturn')
+    re_path(r'^js',jsReturn, name='jsReturn'),
+    re_path(r'^all',all, name='all')
 ]

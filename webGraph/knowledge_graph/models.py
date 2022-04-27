@@ -81,10 +81,10 @@ class Neo4j():
 	# 根据两个节点查找关系，可查阅两个学者关系
 	def findRelBy2Node(self, n1_key, n2_key, n1_type=None, n2_type=None, **rel_message):
 		matcher = RelationshipMatcher(self.graph)
-		n1 = self.findByNode(self.graph, a=n1_type, **n1_key).first()
-		n2 = self.findByNode(self.graph, a=n2_type, **n2_key).first()
+		n1 = self.findByNode(node_type=n1_type, **n1_key).first()
+		n2 = self.findByNode(node_type=n2_type, **n2_key).first()
 		answer = []
-		if ('home_page' in n1) and ('home_page' in n2):
+		if n1 and n2:
 			n1_name = n1.get('name')
 			n2_name = n2.get('name')
 			# print(n1_name,n2_name)
