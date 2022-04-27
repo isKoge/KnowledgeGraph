@@ -25,10 +25,13 @@ def telephone_check(telephone):
 def name_check(name):
     db = neo_con
     searchResult = db.findByEntitiy(name)
-    return len(searchResult)
+    if searchResult:
+        return len(searchResult)
+
 
 # 检查是否存在节点同 accid 在图谱里
 def accid_check(accid):
     db = neo_con
     searchResult = db.findByaccid(accid)
-    return len(searchResult)
+    if searchResult:
+        return len(searchResult)

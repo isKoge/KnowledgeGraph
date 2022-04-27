@@ -122,10 +122,13 @@ class Neo4j():
 
 	# 创建节点
 	def createNode(self, node_type, **node_message):
-		n = Node(node_type, **node_message)
-		self.graph.create(n)
-		print('创建节点成功！')
-		return 1
+		if self.findByNode(node_type, **node_message):
+			print('节点已经存在！')
+		else:
+			n = Node(node_type, **node_message)
+			self.graph.create(n)
+			print('创建节点成功！')
+			return 1
 
 	# 创建关系
 	def createRel(self, n1_type, n1_key, n2_type, n2_key, **rel_message):
@@ -145,15 +148,20 @@ class Neo4j():
 		
 	# 修改节点信息
 	def updateNode(self, update_message, node_type=None, **node_key):
-		searchResult = self.findByNode(node_type, **node_key)
-		if searchResult:
-			answer = list(searchResult)
-			for k,v in update_message.items():
-				answer[0][k] = v
-			sub = Subgraph(answer)
-			self.graph.push(sub)
-			print('修改节点成功')
-			return 1
+		answer = self.findByNode(node_type, **node_key)
+		if answer:
+			searchResult = list(answer)
+			if len(searchResult) == 1:
+				for k,v in update_message.items():
+					searchResult[k] = v
+				sub = Subgraph(answer)
+				self.graph.push(sub)
+				print('修改节点成功')
+				return 1
+			else:
+				return 2
+		else:
+			print('待修改节点不存在！')
 	
 	# 修改关系信息
 	def updateRel(self):
@@ -163,9 +171,13 @@ class Neo4j():
 	def delNode(self, node_type=None, **node_key):
 		answer = self.findByNode(node_type, **node_key)
 		if answer:
-			self.graph.delete(answer)
-			print('删除节点成功！')
-			return 1
+			searchResult = list(answer)
+			if len(searchResult) == 1:
+				self.graph.delete(answer)
+				print('删除节点成功！')
+				return 1
+			else:
+				return 2
 		else:
 			print('删除节点不存在！')
 	
@@ -173,15 +185,21 @@ class Neo4j():
 	def delRel(self, n1_key, n2_key, n1_type, n2_type, **rel_message):
 		n1 = self.findByNode(node_type=n1_type, **n1_key)
 		n2 = self.findByNode(node_type=n2_type, **n2_key)
-		if n1 and n2:
-			r1 = self.findRelBy2Node(n1_key, n2_key, **rel_message)
-			if len(r1) == 1:
-				n1_name = list(n1)[0].get('name')
-				n2_name = list(n2)[0].get('name')
-				self.graph.run("MATCH (n1) - [rel] - (n2) WHERE n1.name=\"" + n1_name + "\"and n2.name=\"" + n2_name + "\" DELETE rel")
-				print("删除关系成功！")
-				return 1
+		if len(list(n1)) == 1 :
+			if len(list(n2)) == 1:
+				r1 = self.findRelBy2Node(n1_key, n2_key, **rel_message)
+				if len(r1) == 1:
+					n1_name = list(n1)[0].get('name')
+					n2_name = list(n2)[0].get('name')
+					self.graph.run("MATCH (n1) - [rel] - (n2) WHERE n1.name=\"" + n1_name + "\"and n2.name=\"" + n2_name + "\" DELETE rel")
+					print("删除关系成功！")
+					return 1
+				else:
+					print("不存在待删除关系！")
 			else:
-				print("不存在待删除关系！")
+				print("节点2重复!")
+			return 3		
 		else:
-			print("不存在待删除关系的节点！")
+			print("节点1重复!")
+			return 2
+			

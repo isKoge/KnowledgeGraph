@@ -5,6 +5,7 @@ Date      : 2022-04-24 19:37:38
 Message   : forms
 '''
 from email.mime import application
+from email.policy import default
 from lib2to3.pytree import Node
 from django import forms
 from tools import *
@@ -29,65 +30,166 @@ class ScholarForm(forms.Form):
 
     #检查论文格式
 class PaperForm(forms.Form):
-    name = forms.CharField(label='题目', max_length=100, required=True)
     author = forms.CharField(label='作者', max_length=100, required=True, initial='请逐个添加！')
     acc_id = forms.CharField(label='作者id', max_length=10, required=False)
+    name = forms.CharField(label='题目', max_length=100, required=True)
     paper_source = forms.CharField(label='论文来源', max_length=50, required=False)
+
+    def clean_name(self):
+        name = self.cleaned_data.get('name')
+        if name_check(name):
+            raise forms.ValidationError('该论文节点已经存在！')
+        return name
 
     def clean_author(self):
         author = self.cleaned_data.get('author')
-        if name_check(author) == 0:
+        if name_check(author):
+            pass
+        else:
             raise forms.ValidationError('该学者不存在，请先前往创建该节点！')
         return author
     
     def clean_acc_id(self):
         acc_id = self.cleaned_data.get('acc_id')
-        if accid_check(acc_id) == 0:
+        if accid_check(acc_id):
+            pass
+        else:
             raise forms.ValidationError('请输入正确的作者id号!')
         return acc_id
 
 class ProjectForm(forms.Form):
-    name = forms.CharField(label='项目名字', max_length=100, required=True)
-    acc_id = forms.CharField(label='作者id', max_length=10, required=False)
     participant = forms.CharField(label='参与者',max_length=100, required=True, initial='请逐个添加！')
+    acc_id = forms.CharField(label='作者id', max_length=10, required=False)
+    name = forms.CharField(label='项目名字', max_length=100, required=True)
     originAndId = forms.CharField(label='项目归属',max_length=100, required=False)
     application = forms.CharField(label='项目申请', max_length=100, required=True)
     
+    def clean_name(self):
+        name = self.cleaned_data.get('name')
+        if name_check(name):
+            raise forms.ValidationError('该项目节点已经存在！')
+        return name
+
     def clean_acc_id(self):
         acc_id = self.cleaned_data.get('acc_id')
-        if accid_check(acc_id) == 0:
+        if accid_check(acc_id):
+            pass
+        else:
             raise forms.ValidationError('请输入正确的作者id号!')
         return acc_id
 
-    def clean_partition(self):
-        partition = self.cleaned_data.get('partition')
-        if name_check(partition) == 0:
+    def clean_participant(self):
+        participant = self.cleaned_data.get('participant')
+        if name_check(participant):
+            pass
+        else:
             raise forms.ValidationError('该学者不存在，请先前往创建该节点！')
-        return partition
+        return participant
 
 class PaperNodeForm(PaperForm):
     acc_id = None
     author = None
-
-    def clean_name(self):
-        name = self.cleaned_data.get('name')
-        if name_check(name) != 0:
-            raise forms.ValidationError('该论文节点已经存在！')
-        return name
             
 class PaperRelForm(PaperForm):
     paper_source = None
+    def clean_name(self):
+        name = self.cleaned_data.get('name')
+        if name_check(name):
+            pass
+        else:
+            raise forms.ValidationError('该论文节点不存在！')
+        return name
+    
 
 class ProjectNodeForm(ProjectForm):
     acc_id = None
     participant = None
 
-    def clean_name(self):
-        name = self.cleaned_data.get('name')
-        if name_check(name) != 0:
-            raise forms.ValidationError('该项目节点已经存在！')
-        return name
-
 class ProjectRelForm(ProjectForm):
     originAndId = None
     application = None
+    def clean_name(self):
+        name = self.cleaned_data.get('name')
+        if name_check(name):
+            pass
+        else:
+            raise forms.ValidationError('该项目节点不存在！')
+        return name
+
+class SchoolNodeForm(forms.Form):
+    name = forms.CharField(label='学校名称', max_length=30, required=True)
+    def clean_name(self):
+        name = self.cleaned_data.get('name')
+        if name_check(name):
+            raise forms.ValidationError('该学校节点已经存在！')
+        return name
+
+class SchoolRelForm(forms.Form):
+    nameScholar = forms.CharField(label='学者名字', max_length=100, required=True)
+    acc_id = forms.CharField(label='学者id', max_length=10, required=False)
+    nameSchool = forms.CharField(label='学校名称', max_length=30, required=True)
+
+    def clean_nameScholar(self):
+        nameScholar = self.cleaned_data.get('nameScholar')
+        if name_check(nameScholar):
+            pass
+        else:
+            raise forms.ValidationError('学者节点不存在！')
+        return nameScholar
+    
+    def clean_acc_id(self):
+        acc_id = self.cleaned_data.get('acc_id')
+        if accid_check(acc_id):
+            pass
+        else:
+            raise forms.ValidationError('请输入正确的作者id号!')
+        return acc_id
+    
+    def clean_nameSchool(self):
+        nameSchool = self.cleaned_data.get('nameSchool')
+        if name_check(nameSchool):
+            pass
+        else:
+            raise forms.ValidationError('学校节点不存在！')
+        return nameSchool
+
+class RelForm(forms.Form):
+
+    a = 'Author_of_paper'
+    b = 'Author_of_project'
+    c = 'work_for_school'
+    RELTYPE_CHOICES = [
+        (a,'论文作者'),
+        (b,'项目参与者'),
+        (c,'工作地点')
+    ]
+    ScholarName = forms.CharField(label='学者名字', max_length=100, required=True)
+    acc_id = forms.CharField(label='学者id', max_length=10, required=False)
+    relType = forms.ChoiceField(choices=RELTYPE_CHOICES)
+    nodeName = forms.CharField(label='节点名称', max_length=30, required=True)
+    message = forms.CharField(label='其他信息', max_length=100, required=False)
+
+
+    def clean_ScholarName(self):
+        ScholarName = self.cleaned_data.get('ScholarName')
+        if name_check(ScholarName):
+            pass
+        else:
+            raise forms.ValidationError('学者节点不存在！')
+        return ScholarName
+    
+    def clean_acc_id(self):
+        acc_id = self.cleaned_data.get('acc_id')
+        if accid_check(acc_id):
+            pass
+        else:
+            raise forms.ValidationError('请输入正确的作者id号!')
+        return acc_id
+    
+    def clean_nodeName(self):
+        nodeName = self.cleaned_data.get('nodeName')
+        if name_check(nodeName):
+            pass
+        else:
+            raise forms.ValidationError('节点不存在！')
+        return nodeName 
