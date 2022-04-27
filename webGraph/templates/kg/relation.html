@@ -72,14 +72,14 @@
 	{% endif %}
 
     {% if searchResult %}
-
     <!-- 为ECharts准备一个具备大小（宽高）的Dom -->
     <div class = "col-md-12">
         <div class="panel panel-default ">
 	        <header class="panel-heading">
 	            关系图 :
 	        </header>
-            <div class = "panel-body ">
+            <div class = "panel-body " style="position:relative;">
+				<div id="graph-info" style="position: absolute;left:0;top: 0;"></div>
                 <div id="graph" style="width: 100%;height:600px;"></div>
             </div>
         </div>
@@ -132,10 +132,11 @@
     for( var i = 0 ;id < maxDisPlayNode&& i<searchResult.length ; i++ ){
         //获取node1
         node1 = {} ;
+		node1['category'] = 3 ;
         node1['name'] = searchResult[i]['n1']['name'] ;
 		node1['acc_id'] = searchResult[i]['n1']['acc_id'] ;
         node1['draggable'] = true ;
-        if('home_page' in searchResult[i]['n1']){
+        if('field' in searchResult[i]['n1']){
             node1['category'] = 0 ;
         }
         if('paper_id' in searchResult[i]['n1']){
@@ -143,9 +144,6 @@
         }
 		if('originAndId' in searchResult[i]['n1']){
 			node1['category'] = 2 ;
-		}
-		else{
-			node1['category'] = 3;
 		}
         var flag = 1 ;
 	
@@ -180,7 +178,10 @@
 		else{
 			node2['category'] = 3;
 		}
-		
+
+		// //
+
+
         flag = 1 ;
         relationTarget = id.toString() ;
         for(var j = 0 ; j<nodes.length ;j++){
@@ -219,8 +220,77 @@
 
      // 基于准备好的dom，初始化echarts实例
     var myChart = echarts.init(document.getElementById('graph'));
+	
     myChart.on('click',(p)=>{
-		console.log(p)
+		var info = $('#graph-info')
+		$.post("/kg/js",
+		{
+			csrf_token:'{{ csrf_token }}',
+			data:p.data.name,
+			style:p.data.category
+		},
+  		function(data,status){
+			console.log("Data: " + data + "\nStatus: " + status);
+			var data = $.parseJSON(data)[0]
+			// for (var i in a[0]){
+			// 	info.append(a[0][i],'<br>')	 
+			// }
+			html = ''
+
+			switch (p.data.category) {
+			case 0:
+				html = `  
+			<style>
+			.info-detail {
+				width: 200px;
+				height: 300px;
+				color: rgb(255, 255, 255);
+				font-weight: 3000;
+				user-select: none;
+			}
+
+			.info-title {
+				background-color: rgba(46, 82, 112, 0.7);
+				height: 65px;
+				line-height: 65px;
+				text-align: center;
+				font-size: large;
+			}
+
+			.info-form {
+				background-color: rgba(133, 154, 171, 0.8);
+			}
+
+			.info-form-row {
+				height: 48px;
+				line-height: 48px;
+				padding: 0 15px;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+			</style>
+			<div class='info-detail'>
+			<div class="info-title">
+				学者信息
+			</div>
+			<div class="info-form">
+				<div class="info-form-row">姓名：`+ data['name'] + `</div>
+				<div class="info-form-row">单位：`+ data['work_unit'] + `</div>
+				<div class="info-form-row">职称：`+ data['scholar_title'] + `</div>
+				<div class="info-form-row">学历：`+ data['degree'] + `</div>
+				<div class="info-form-row">研究领域：`+ data['field'] + `</div>
+				<div class="info-form-row">邮箱：`+ data['email'] + `</div>
+				<div class="info-form-row" style="cursor: pointer;" onclick="window.open('`+ data['home_page'] + `')">个人主页（点击查看）</div>
+			</div>
+			</div>    
+			`
+			}
+			console.log('__________',html)
+			info.html(html)
+
+		});
+		
 	})
     option = {
 	    title: {

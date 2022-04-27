@@ -4,11 +4,13 @@ Author    : KoGe
 Date      : 2022-04-14 15:21:24
 Message   : 
 '''
+from django.http import HttpResponse
 from django.shortcuts import render
 from knowledge_graph.models import Neo4j
 import json
 from django.contrib.auth.decorators import login_required
 from knowledge_graph.kgforms import *
+from django.views.decorators.csrf import csrf_exempt
 
 # 链接 Neo4j 
 neo_con = Neo4j()
@@ -246,3 +248,22 @@ def RelManage(request):
 	else:
 		form = RelForm()
 	return render(request, 'kg/RelManage.html', {'form':form})
+
+#前端点击返回数据
+@csrf_exempt
+def jsReturn(request):
+	db = neo_con
+	nodeName = request.POST.get('data')
+	nodeType = request.POST.get('style')
+
+	if nodeType == '0':
+		searchResult = db.findByNode(node_type='scholar', name=nodeName)
+	elif nodeType == '1':
+		searchResult = db.findByNode(node_type='paper', name=nodeName)
+	elif nodeType == '2':
+		searchResult = db.findByNode(node_type='project', name=nodeName)
+	else:
+		searchResult = db.findByNode(node_type='school', name=nodeName)
+	answer = list(searchResult)
+	print(answer)
+	return HttpResponse(json.dumps(answer,ensure_ascii=False))
