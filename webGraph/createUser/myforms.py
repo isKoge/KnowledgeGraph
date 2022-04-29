@@ -19,10 +19,10 @@ def telephone_check(telephone):
     return re.match(pattern, telephone)
 
 class RegistrationForm(forms.Form):
-    username = forms.CharField(label='Username', max_length=50)
-    email = forms.EmailField(label='Email')
-    password1 = forms.CharField(label='Password', widget=forms.PasswordInput)
-    password2 = forms.CharField(label='Password Confirmation', widget=forms.PasswordInput)
+    username = forms.CharField(label='Username', max_length=50,widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "用户名"}))
+    email = forms.EmailField(label='Email',widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': "邮箱"}))
+    password1 = forms.CharField(label='Password', widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': "密码"}))
+    password2 = forms.CharField(label='Password Confirmation', widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': "确认密码"}))
 
     # 检查 usernmae 是否合法,包括长度，是否存在
     def clean_username(self):
@@ -62,12 +62,12 @@ class RegistrationForm(forms.Form):
         password2 = self.cleaned_data.get('password2')
 
         if password1 and password2 and password1 != password2:
-            raise forms.ValidationError('The passwords are inconsistent !')
+            raise forms.ValidationError('两次密码不一致！')
         return password2
 
 class LoginForm(forms.Form):
-    username = forms.CharField(label='Username', max_length=50)
-    password = forms.CharField(label='Password',widget=forms.PasswordInput)
+    username = forms.CharField(label='Username', max_length=50, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "用户名",'autofocus': '', 'style':"margin:10px 0px"}))
+    password = forms.CharField(label='Password',widget=forms.PasswordInput(attrs={'class': 'form-control','placeholder': "密码",'style':"margin:10px 0px"}))
 
     # 使用邮箱登录或用户名登录时候，判断是否存在或正确
     def clean_username(self):
@@ -75,11 +75,11 @@ class LoginForm(forms.Form):
         if email_check(username):
             filter_result = User.objects.filter(email__exact = username)
             if not filter_result:
-                raise forms.ValidationError('Please enter the correct Email !')
+                raise forms.ValidationError('请输入正确的邮箱！')
         else:
             filter_result = User.objects.filter(username__exact = username)
             if not filter_result:
-                raise forms.ValidationError('Please enter the correct Username !')
+                raise forms.ValidationError('请输入正确的用户名！')
         return username
         
 class ProfileForm(forms.Form):

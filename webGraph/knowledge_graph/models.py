@@ -71,6 +71,7 @@ class Neo4j():
 
 	# 根据节点属性寻找节点
 	def findByNode(self, node_type=None, **node_key):
+		print(node_key)
 		matcher = NodeMatcher(self.graph)
 		if node_type:
 			answer = matcher.match(node_type, **node_key)
@@ -202,4 +203,14 @@ class Neo4j():
 		else:
 			print("节点1重复!")
 			return 2
-			
+	
+	# 获取收录各节点种类中节点数，学者所处学校统计
+	def findCountBySchool(self):
+		answer = self.graph.run('MATCH (n:school) WITH n, SIZE((n)<-[]-()) AS s ORDER BY s DESC RETURN n.name,s LIMIT 10').data()
+		return answer
+	def findCountByScholar(self):
+		answer = self.graph.run('MATCH (n:scholar) WITH n, SIZE((n)-[]->()) as s ORDER BY s DESC RETURN n.name,s LIMIT 10').data()
+		return answer
+	def findCountStats(self):
+		answer = self.graph.run("CALL apoc.meta.stats() YIELD nodeCount,relCount,labels RETURN nodeCount,relCount,labels").data()[0]
+		return answer

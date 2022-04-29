@@ -3,41 +3,29 @@
  * @Date      : 2022-04-08 19:27:18
  * @Message   : 
 -->
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body> -->
 {% extends "base.html" %} 
 {% block mainbody %}
-    {% if message %}
-    {{ message }}
-    {% endif %}
-    <div class="form-group">
-        <form method="post" action="" enctype="multipart/form-data">
-            {% csrf_token %}
-            {% for field in form %}
-                <div class="form-group ">
-                    {{ field.errors }}
-                    {{ field.label_tag }}{{ field }}
-                    {% if field.help_text %}
-                        <p class="help">{{ field.help_text|safe }}</p>
-                    {% endif %}
+<div class="container">
+    <div class="col" style="padding: 5% 5% 5% 5%">
+        <form class="form-login" action="" method="post" style="padding-left:32%; padding-right:32% ;">
+          {% if message %}
+            <div class="alert alert-warning">{{ message }}</div>
+          {% endif %}
+          {% csrf_token %}
+          <h2 class="text-center">欢迎登录</h2>
+                <div class="row">
+                    {{ form.username }}
+                    {{ form.username.errors}}
                 </div>
-            {% endfor %}
-            <div class="btn">
-                <input type="submit" value="Login">
-            </div>
+                <div class="row">
+                    {{ form.password }}
+                    {{ form.password.errors }}
+                </div>    
+          <div margin-top: 10px;>
+              <button type="submit" class="btn btn-primary float-right" style="background-color:#4592fe ; padding:6px 38px;margin-left: 34%">登录</button>
+              <a href="/accounts/register/" class="text-primary" style="padding-left: 40px"><ins>新用户注册</ins></a>
+          </div>
         </form>
-        <h2 class="my-href pull-right">
-            <a href="/accounts/register" >Register Link</a>
-        </h2>
- 
     </div>
-    {% endblock %}
-<!-- </body>
-</html> -->
+</div>
+{% endblock %}

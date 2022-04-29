@@ -13,5 +13,5 @@ urlpatterns = [
     re_path(r'^NodeManage',NodeManage, name='Node_update'),
     re_path(r'^RelManage',RelManage, name='RelManage'),
     re_path(r'^js',jsReturn, name='jsReturn'),
-    re_path(r'^all',all, name='all')
+    re_path(r'^overview',overview, name='overview')
 ]

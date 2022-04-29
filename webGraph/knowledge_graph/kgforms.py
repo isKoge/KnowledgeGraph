@@ -11,29 +11,29 @@ from django import forms
 from tools import *
 
 class ScholarForm(forms.Form):
-    name = forms.CharField(label='学者姓名', max_length=30, required=True)
-    acc_id = forms.CharField(label='学者id', max_length=10,required=False)
-    email = forms.EmailField(label='邮箱', max_length=30, required=False)
-    degree = forms.CharField(label='学位', max_length=30, required=False)
-    field = forms.CharField(label='研究领域', widget=forms.Textarea, required=False)
-    home_page = forms.URLField(label='学者主页', required=False)
-    scholar_title = forms.CharField(label="学者头衔", required=False)
-    work_unit = forms.CharField(label="工作地点", max_length=30, required=True)
+    name = forms.CharField(label='学者姓名', max_length=30, required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "小明"}))
+    acc_id = forms.CharField(label='学者id', max_length=10,required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "123"}))
+    email = forms.EmailField(label='邮箱', max_length=30, required=False, widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': "123@123.com"}))
+    degree = forms.CharField(label='学位', max_length=30, required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "博士"}))
+    field = forms.CharField(label='研究领域', max_length=50, required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "计算机科学与技术 , 软件工程 , 网络与信息安全"}))
+    home_page = forms.URLField(label='学者主页', required=False, widget=forms.URLInput(attrs={'class': 'form-control', 'placeholder': "https://www.xxxx.com"}))
+    scholar_title = forms.CharField(label="学者头衔", required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "博士生导师"}))
+    work_unit = forms.CharField(label="工作地点", max_length=30, required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "广东工业大学"}))
     
-    def clean_email(self):
-        email = self.cleaned_data.get('email')
-        if email_check(email):
-            pass
-        else:
-            raise forms.ValidationError('请输入正确的邮箱！')
-        return email
+    # def clean_email(self):
+    #     email = self.cleaned_data.get('email')
+    #     if email_check(email):
+    #         pass
+    #     else:
+    #         raise forms.ValidationError('请输入正确的邮箱！')
+    #     return email
 
     #检查论文格式
 class PaperForm(forms.Form):
-    author = forms.CharField(label='作者', max_length=100, required=True, initial='请逐个添加！')
-    acc_id = forms.CharField(label='作者id', max_length=10, required=False)
-    name = forms.CharField(label='题目', max_length=100, required=True)
-    paper_source = forms.CharField(label='论文来源', max_length=50, required=False)
+    author = forms.CharField(label='作者', max_length=100, required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "小明"}))
+    acc_id = forms.CharField(label='作者id', max_length=10, required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "123"}))
+    name = forms.CharField(label='题目', max_length=100, required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "基于知识图谱的学者资源管理系统"}))
+    paper_source = forms.CharField(label='论文来源', max_length=50, required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "广东工业大学"}))
 
     def clean_name(self):
         name = self.cleaned_data.get('name')
@@ -58,11 +58,11 @@ class PaperForm(forms.Form):
         return acc_id
 
 class ProjectForm(forms.Form):
-    participant = forms.CharField(label='参与者',max_length=100, required=True, initial='请逐个添加！')
-    acc_id = forms.CharField(label='作者id', max_length=10, required=False)
-    name = forms.CharField(label='项目名字', max_length=100, required=True)
-    originAndId = forms.CharField(label='项目归属',max_length=100, required=False)
-    application = forms.CharField(label='项目申请', max_length=100, required=True)
+    participant = forms.CharField(label='参与者',max_length=100, required=True,widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "小明"}))
+    acc_id = forms.CharField(label='作者id', max_length=10, required=False,widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "123"}))
+    name = forms.CharField(label='项目名字', max_length=100, required=True,widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "第16届亚运会信息发布系统咨询设计"}))
+    originAndId = forms.CharField(label='项目归属',max_length=100, required=False,widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "第16届亚组委"}))
+    application = forms.CharField(label='项目申请', max_length=100, required=True,widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "小明"}))
     
     def clean_name(self):
         name = self.cleaned_data.get('name')
@@ -117,7 +117,7 @@ class ProjectRelForm(ProjectForm):
         return name
 
 class SchoolNodeForm(forms.Form):
-    name = forms.CharField(label='学校名称', max_length=30, required=True)
+    name = forms.CharField(label='学校名称', max_length=30, required=True,widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "广东工业大学"}))
     def clean_name(self):
         name = self.cleaned_data.get('name')
         if name_check(name):

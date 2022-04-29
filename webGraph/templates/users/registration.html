@@ -5,22 +5,27 @@
 -->
 {% extends "base.html" %} 
 {% block mainbody %}
-<body>
-    <form method="post" action="">
-        {% csrf_token %}
-        {% for field in form %}
-            <div>
-                {{ field.errors }}
-                {{ field.label_tag }}{{ field }}
-                {% if field.help_text %}
-                    <p>{{ field.help_text|safe }}</p>
+<div class="container">
+    <div class="col" style="padding: 5% 5% 5% 5%">
+        <form class="form-inline" action="/login/" method="post" style="padding-left:32%; padding-right:32% ;">
+            {% for field in form %}
+                {% if field.errors %}
+                    <div class="alert alert-warning">{{ field.errors }}</div>
                 {% endif %}
+            {% endfor %}
+            {% csrf_token %}
+            <div class="row">
+                <h2 class="text-center">欢迎注册</h2>
+                
+                    <div class="col" style="margin: 10px 5px;">{{ form.username }}</div>
+                    <div class="col" style="margin: 10px 5px;">{{ form.email }}</div>
+                    <div class="col" style="margin: 10px 5px;">{{ form.password1 }}</div>
+                    <div class="col" style="margin: 10px 5px;">{{ form.password2 }}</div>
+            </div>            
+            <div margin-top: 10px;>
+                <button type="submit" class="btn btn-primary float-right" style="background-color:#4592fe ; padding:6px 60px;margin-left: 27%;margin-right: 34%;">注册</button>
             </div>
-        {% endfor %}
-        <div>
-            <input type="submit" value="register">
-        </div>
-    </form>
-</body>
-</html>
+        </form>
+    </div>
+</div>
 {% endblock %}

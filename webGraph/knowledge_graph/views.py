@@ -5,7 +5,7 @@ Date      : 2022-04-14 15:21:24
 Message   : 
 '''
 from django.http import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from knowledge_graph.models import Neo4j
 import json
 from django.contrib.auth.decorators import login_required
@@ -92,6 +92,7 @@ def search_relation(request):
 				
 	# return render(request,'kg/relation.html',{'ctx':ctx})
 	return render(request,'kg/relation.html',{'searchResult':json.dumps(searchResult,ensure_ascii=False)})
+
 def selectForm(formType, select_type):
 	if formType == 'n':
 		if select_type == 1:
@@ -106,18 +107,19 @@ def selectForm(formType, select_type):
 		form = RelForm()
 	return form
 
-
 @login_required
 def NodeManage(request):
 	db = neo_con 
 	message = {}
 	if request.method == 'POST':
 		# 选择当前是什么种类，1学者，2论文，3项目
-		select_type = request.POST.get('select_type')
+		select_type = (request.get_full_path()).split('/',-1)[-1]
+		
 		# 选择功能，1增加，2删除，3查找, 4修改
-		select_fun = request.POST.get('select_fun')
+		select_fun = int(request.POST.get('select_fun'))
+		print('----------',select_type,'---------',select_fun)
 		node_type = ''
-		if select_type == 1:
+		if select_type == 'ScholarManage':
 			form = ScholarForm(request.POST)
 			node_type = 'scholar'
 		elif select_type == 2:
@@ -132,44 +134,47 @@ def NodeManage(request):
 
 		if form.is_valid():
 			node_message = form.cleaned_data
+			node_message = remove_none(node_message)
 			node_name = form.cleaned_data.get('name')
 			if select_fun == 1:
 				if db.createNode(node_type, **node_message):
 					message = '添加节点成功！'
 					form = selectForm('n',select_type)
-					return render(request,'kg/NodeMange.html',{'form':form, 'message':message})
+					return render(request,'kg/NodeManage.html',{'form':form, 'message':message})
 				else:
 					message = '添加节点失败，节点已经存在！'
-					return render(request,'kg/NodeMange.html',{'form':form, 'message':message})
+					return render(request,'kg/NodeManage.html',{'form':form, 'message':message})
 			elif select_fun == 2:
 				answer = db.delNode(node_type, **node_message)
 				if answer:
 					if answer == 1:
 						message = '删除节点成功！'
 						form = selectForm('n',select_type)
-						return render(request,'kg/NodeMange.html',{'form':form, 'message':message})
+						return render(request,'kg/NodeManage.html',{'form':form, 'message':message})
 					else:
 						message = '节点存在多个，请选择其中一个！'
 						searchResult = list(db.findByNode(node_type, **node_message))
 						return render(request,'kg/NodeManage.html',{'searchResult':json.dumps(searchResult,ensure_ascii=False),'message':message})
 				else:
 					message = '删除节点失败，节点不存在！'
-					return render(request,'kg/NodeMange.html',{'form':form, 'message':message})
+					return render(request,'kg/NodeManage.html',{'form':form, 'message':message})
 			elif select_fun == 3:
+				print('?????????????????????')
 				answer = db.findByNode(node_type, **node_message)
 				if answer:
+					print(form.cleaned_data)
 					message = '查找成功！'
 					searchResult = list(answer)
-					return render(request,'kg/NodeManage.html',{'searchResult':json.dumps(searchResult,ensure_ascii=False),'message':message})
+					return render(request,'kg/NodeManage.html',{'form':form,'searchResult':json.dumps(searchResult,ensure_ascii=False),'message':json.dumps(message)})
 				else:
 					message = '不存在节点！'
-					return render(request,'kg/NodeMange.html',{'message':message})
+					return render(request,'kg/NodeManage.html',{'form':form,'message':message})
 			else:
 				answer = db.updateNode(node_message, node_type, name=node_name)
 				if answer:
 					if answer == 1:
 						message = '修改成功！'
-						return render(request,'kg/NodeMange.html',{'form':form, 'message':message})
+						return render(request,'kg/NodeManage.html',{'form':form, 'message':message})
 					else:
 						message = '节点存在多个，请选择其中一个！'
 						searchResult = list(db.findByNode(node_type, **node_message))
@@ -177,12 +182,14 @@ def NodeManage(request):
 				else:
 					message = '修改失败！'
 					return render(request, 'kg/NodeManage.html', {'form': form, 'message':message})
+		else:print('!!!!!!!!!!!!!!!!')
 	else:
+		print('============else===========')
 		formScholar = ScholarForm()
 		formPaper = PaperNodeForm()
 		formProject = ProjectNodeForm()
 		formSchool = SchoolNodeForm()
-	return render(request, 'kg/NodeManage.html', {'formScholar':formScholar, 'formPaper':formPaper, 'formProject':formProject, 'formSchool':formSchool})
+		return render(request, 'kg/NodeManage.html', {'formScholar':formScholar, 'formPaper':formPaper, 'formProject':formProject, 'formSchool':formSchool})
 
 @login_required
 def RelManage(request):
@@ -251,7 +258,17 @@ def RelManage(request):
 		form = RelForm()
 	return render(request, 'kg/RelManage.html', {'form':form})
 
-#前端点击返回数据
+#清楚表单空格
+def remove_none(text):
+	answer = {}
+	for k,v in text.items():
+		if v == '':
+			pass
+		else:
+			answer[k] = v
+	return answer
+
+# 前端点击返回数据
 @csrf_exempt
 def jsReturn(request):
 	db = neo_con
@@ -270,5 +287,18 @@ def jsReturn(request):
 	print(answer)
 	return HttpResponse(json.dumps(answer,ensure_ascii=False))
 
-def all(request):
-	return render(request,'kg/all.html')
+# 总览
+def overview(request):
+	db = neo_con
+	countByScholar = db.findCountByScholar()
+	countBySchool = db.findCountBySchool()
+	countByStats = db.findCountStats()
+	labels = countByStats['labels']
+	tempList = []
+	for k,v in labels.items():
+		temp = {}
+		temp['n.name'] = k
+		temp['s'] = v
+		tempList.append(temp)
+	countByStats['labels'] = tempList
+	return render(request,'kg/overview.html',{'countByScholar':json.dumps(countByScholar,ensure_ascii=False),'countBySchool':json.dumps(countBySchool,ensure_ascii=False),'countByStats':json.dumps(countByStats,ensure_ascii=False)})

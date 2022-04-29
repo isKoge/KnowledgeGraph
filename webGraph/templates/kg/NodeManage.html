@@ -25,34 +25,120 @@
     </div>
     <div class = "col-md-12">
         <div class="panel panel-default ">
+            <script>
+                
+            </script>
             <header class = "panel-heading">
-                查询条件：
+                节点种类：
+                    <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio1" value="option1" checked>
+                    <label class="form-check-label" for="inlineRadio1">学者</label>
+
+                    <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio2" value="option2">
+                    <label class="form-check-label" for="inlineRadio2">论文</label>
+                  
+                    <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio3" value="option3">
+                    <label class="form-check-label" for="inlineRadio3">项目</label>
+
+                    <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio3" value="option3">
+                    <label class="form-check-label" for="inlineRadio3">学校</label>
             </header>
             <div class = "panel-body">
                 <!--搜索框-->
-                <form method = "get" id = 'searchEntityForm'>
-                    <div >
-                        <div class="input-group">
-                            <input type="text" id = "user_text" name = "user_text" class="form-control" placeholder="输入实体名称" aria-describedby="basic-addon1">
-                            <span class="btn btn-primary input-group-addon" type="button" id="relationSearchButton" style="background-color:#4592fe ; padding:6px 38px" onclick="document.getElementById('searchEntityForm').submit();">查询</span>
-                         </div>
+                <form  id ="searchNodeForm0" class="form-inline"  method="POST" action="NodeManage/ScholarManage">
+                    {% csrf_token %}
+                    <div class="row" >
+                        <div class="col-md-4">
+                            <label for="{{ formScholar.name.id_for_label }}"class="form-label">学者姓名</label>
+                            {{ form.Scholar.errors }}
+                            {{ formScholar.name }}
+                        </div>
+                        <div class="col-md-2">
+                            <label for="{{ formScholar.acc_id.id_for_label }}"class="form-label">学者id</label>
+                            {{ formScholar.acc_id }}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ formScholar.email.id_for_label }}"class="form-label">邮箱</label>
+                            {{ formScholar.email }}
+                        </div>
+                    </div>
+                    <div class="row" style="padding-top:10px">
+                        <div class="col-md-6">
+                            <label for="{{ formScholar.degree.id_for_label }}"class="form-label">学位</label>
+                            {{ formScholar.degree }}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ formScholar.home_page.id_for_label }}"class="form-label">学者主页</label>
+                            {{ formScholar.home_page }}
+                        </div>
+                    </div>
+                    <div class="row" style="padding-top:10px">
+                        <div class="col-md-8">
+                            <label for="{{ formScholar.field.id_for_label }}"class="form-label">研究领域</label>
+                            {{ formScholar.field }}
+                        </div>
+                        <div class="col-md-4">
+                            <label for="{{ formScholar.work_unit.id_for_label }}"class="form-label">工作地点</label>
+                            {{ formScholar.work_unit }}
+                        </div>
+                    </div>
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end" style="padding-top: 17px;display: flex;">
+                        <div style="padding: 0px 30px 0px 95px ;"><button name="select_fun" value="1" class="btn btn-primary" type="submit" style="background-color:#4592fe ; padding:6px 38px">增加</button></div>
+                        <div style="padding: 0px 30px 0px 30px ;"><button name="select_fun" value="3" class="btn btn-primary" type="submit" style="background-color:#4592fe ; padding:6px 38px">查看</button></div>
+                        <div style="padding: 0px 30px 0px 30px ;"><button name="select_fun" value="4" class="btn btn-primary" type="submit" style="background-color:#4592fe ; padding:6px 38px">修改</button></div>
+                        <div style="padding: 0px 30px 0px 30px ;"><button name="select_fun" value="2" class="btn btn-danger" type="submit" style=" padding:6px 38px">删除</button></div>
+                    </div>
+                </form>
+                <form  id ="searchNodeForm1" class="form-inline"  method="get" style="display: none;" >
+                    <div class="row" >
+                        <div class="col-md-4">
+                            <label for="{{ formPaper.name.id_for_label }}"class="form-label">论文名</label>
+                            {{ formPaper.name }}
+                        </div>
+                        <div class="col-md-8">
+                            <label for="{{ formPaper.paper_source.id_for_label }}"class="form-label">论文来源</label>
+                            {{ formPaper.paper_source }}
+                        </div>
+                    </div>
+                    <div class="input-group"style="padding-top: 17px;">
+                        <span class="btn btn-primary" type="button" id="nodeSearchButton1" style="background-color:#4592fe ; padding:6px 38px" onclick="document.getElementById('searchNodeForm1').submit();">查询</span>
+                    </div>
+                </form>
+                <form  id ="searchNodeForm2" class="form-inline"  method="get" style="display: none;">
+                    <div class="row" >
+                        <div class="col-md-4">
+                            <label for="{{ formProject.name.id_for_label }}"class="form-label">项目名</label>
+                            {{ formProject.name }}
+                        </div>
+                        <div class="col-md-8">
+                            <label for="{{ formProject.application.id_for_label }}"class="form-label">项目申请</label>
+                            {{ formProject.application }}
+                        </div>
+                    </div>
+                    <div class="col"style="padding-top: 10px;">
+                        <label for="{{ formProject.originAndId.id_for_label }}"class="form-label">项目归属</label>
+                        {{ formProject.originAndId }}
+                    </div>
+                    <div class="input-group"style="padding-top: 17px;">
+                        <span class="btn btn-primary" type="button" id="nodeSearchButton2" style="background-color:#4592fe ; padding:6px 38px" onclick="document.getElementById('searchNodeForm2').submit();">查询</span>
+                    </div>
+                </form>
+                <form  id ="searchNodeForm3" class="form-inline" style="padding-left: 10% ; padding-right: 10%; display: none;" method="get">
+                    <div class="row">
+                        <div class="col-md-8">
+                            {{ formSchool.name }}
+                        </div>
+                        <div class="col-md-4">
+                            <span class="btn btn-primary" type="button" id="nodeSearchButton3" style="background-color:#4592fe ; padding:6px 38px" onclick="document.getElementById('searchNodeForm3').submit();">查询</span>
+                        </div>
                     </div>
                 </form>
             </div>
         </div>
-
-        
     </div>
     <p>
         <div class = "col-md-12">
-            {% if ctx %}
-                <div class="panel panel-default">
-                    <header class ="panel-heading">
-                        <div class = "panel-body">
-                            <h2>数据库中暂未添加该实体</h2>
-                        </div>
-                    </header>
-                </div>
+            {% if message %}
+                {{ message }}
             {% endif %}
         </div>
     </p>
@@ -266,7 +352,29 @@
 
 // 使用刚指定的配置项和数据显示图表。
         myChart.setOption(option);
+        
 </script>
 {% endif %}
+<script>
+    window.onload=()=>{
+                    var formstyle = $('.form-check-input')
+                    for(i=0; i<4; i++){
+                        (function(i){
+                            formstyle[i].onclick = function(){
+                                for(j=0; j<4; j++){
+                                    $('.form-inline')[j].style.display='none'
+                                }
+                                $('.form-inline')[i].style.display='block'
+                            }
+                        })(i)
+                    }
+                }
+    // var m = {{message|safe}};
+    // console.log(m)
+    // if (alert(m)){
+    //     console.log('______________')
+    //     window.location.href='/kg/NodeManage'
+    // }
+</script>
 
 {% endblock %}
