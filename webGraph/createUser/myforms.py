@@ -83,10 +83,10 @@ class LoginForm(forms.Form):
         return username
         
 class ProfileForm(forms.Form):
-    first_name = forms.CharField(label='First Name', max_length=50, required=False)
-    last_name = forms.CharField(label='Last Name', max_length=50, required=False)
-    org = forms.CharField(label='Organization', max_length=50, required=False)
-    telephone = forms.CharField(label='Telephone',max_length=11, required=False)
+    first_name = forms.CharField(label='First Name', max_length=50, required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "姓"}))
+    last_name = forms.CharField(label='Last Name', max_length=50, required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "名"}))
+    org = forms.CharField(label='Organization', max_length=50, required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "组织"}))
+    telephone = forms.CharField(label='Telephone',max_length=11, required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "电话"}))
 
     def clean_telephone(self):
         telephone = self.cleaned_data.get('telephone')
@@ -96,10 +96,9 @@ class ProfileForm(forms.Form):
             raise forms.ValidationError('Please enter a valid Telephone !')
 
 class PwdChangeForm(forms.Form):
-    old_password = forms.CharField(label='Old Password', widget=forms.PasswordInput)
-
-    password1 = forms.CharField(label='New Password', widget=forms.PasswordInput)
-    password2 = forms.CharField(label='Password Confirmation', widget=forms.PasswordInput)
+    old_password = forms.CharField(label='Old Password', widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': "请输入旧密码！"}))
+    password1 = forms.CharField(label='New Password', widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': "请输入新密码！"}))
+    password2 = forms.CharField(label='Password Confirmation', widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': "请确认新密码！"}))
 
     def clean_password1(self):
         password1 = self.cleaned_data.get('password1')

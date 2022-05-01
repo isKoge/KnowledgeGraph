@@ -1,0 +1,54 @@
+<!--
+ * @Author    : KoGe
+ * @Date      : 2022-04-30 23:30:53
+ * @Message   : 
+-->
+{% extends "base.html" %} 
+{% block mainbody %}
+<div class="container">
+    <div class="col" style="padding: 5% 5% 5% 5%">
+        <form class="form-login" action="" method="post" style="padding-left:32%; padding-right:32% ;">
+            {% if message %}
+            <div class="alert alert-warning">{{ message }}</div>
+            {% endif %}
+            {% csrf_token %}
+            {% if formPfd %}
+                <h2 class="-center" style="padding-left: 22%;">个人信息修改</h2>
+                <div class="row" style="margin: 15px 0px;">
+                    {{ formPfd.first_name }}
+                    {{ formPfd.username.errors}}
+                </div>
+                <div class="row" style="margin: 15px 0px;">
+                    {{ formPfd.last_name}}
+                    {{ formPfd.password.errors }}
+                </div>
+                <div class="row" style="margin: 15px 0px;">
+                    {{ formPfd.org }}
+                    {{ formPfd.password.errors }}
+                </div>
+                <div class="row" style="margin: 15px 0px;">
+                    {{ formPfd.org }}
+                    {{ formPfd.password.errors }}
+                </div>
+            {% elif formPwd %}
+            <h2 class="-center" style="padding-left: 22%;">个人密码修改</h2>
+            <div class="row" style="margin: 15px 0px;">
+                {{ formPwd.old_password }}
+                {{ formPwd.old_password.errors}}
+            </div>
+            <div class="row" style="margin: 15px 0px;">
+                {{ formPwd.password1}}
+                {{ formPwd.password1.errors }}
+            </div>
+            <div class="row" style="margin: 15px 0px;">
+                {{ formPwd.password2 }}
+                {{ formPwd.password2.errors }}
+            </div>
+        {% endif %}
+            <div margin-top: 10px;>
+                <button type="submit" class="btn btn-primary float-right" style="background-color:#4592fe ; padding:6px 38px;margin-left: 34%">修改</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

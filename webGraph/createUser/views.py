@@ -27,7 +27,7 @@ def register(request):
 
             user_profile = UserProfile(user=user)
             user_profile.save()
-            return HttpResponseRedirect('/accounts/login')
+            return HttpResponseRedirect(reverse('users:index', args=[user.id]))
     else:
         form = RegistrationForm()
     return render(request, 'users/registration.html', {'form':form})
@@ -65,15 +65,15 @@ def profile_update(request, pk):
     user_profile = get_object_or_404(UserProfile, user=user)
 
     if request.method == 'POST':
-        form = ProfileForm(request.POST)
+        formPfd = ProfileForm(request.POST)
 
-        if form.is_valid():
-            user.first_name = form.cleaned_data['first_name']
-            user.last_name = form.cleaned_data['last_name']
+        if formPfd.is_valid():
+            user.first_name = formPfd.cleaned_data['first_name']
+            user.last_name = formPfd.cleaned_data['last_name']
             user.save()
 
-            user_profile.org = form.cleaned_data['org']
-            user_profile.telephone = form.cleaned_data['telephone']
+            user_profile.org = formPfd.cleaned_data['org']
+            user_profile.telephone = formPfd.cleaned_data['telephone']
             user_profile.save()
 
             return HttpResponseRedirect(reverse('users:profile', args=[user.id]))
@@ -84,8 +84,8 @@ def profile_update(request, pk):
             'org': user_profile.org,
             'telephone': user_profile.telephone,
         }
-        form = ProfileForm(default_data)
-    return render(request,'users/profile_update.html',{'form': form,'user': user})
+        formPfd = ProfileForm(default_data)
+    return render(request,'users/profile_update.html',{'formPfd': formPfd,'user': user})
 
 @login_required
 def index(request, pk):  # index页面需要一开始就加载的内容写在这里
@@ -102,24 +102,24 @@ def pwd_change(request, pk):
     user = get_object_or_404(User, pk=pk)
  
     if request.method == "POST":
-        form = PwdChangeForm(request.POST)
+        formPwd = PwdChangeForm(request.POST)
  
-        if form.is_valid():
-            password = form.cleaned_data['old_password']
+        if formPwd.is_valid():
+            password = formPwd.cleaned_data['old_password']
             username = user.username
  
             user = auth.authenticate(username=username, password=password)
  
             if user is not None and user.is_active:
-                new_password = form.cleaned_data['password2']
+                new_password = formPwd.cleaned_data['password2']
                 user.set_password(new_password)
                 user.save()
                 return HttpResponseRedirect('/accounts/login/')
  
             else:
-                return render(request, 'users/pwd_change.html', {'form': form,
+                return render(request, 'users/profile_update.html', {'form': formPwd,
                         'user': user, 'message': 'Old password is wrong Try again'})
     else:
-        form = PwdChangeForm()
+        formPwd = PwdChangeForm()
  
-    return render(request, 'users/pwd_change.html', {'form': form, 'user': user})
+    return render(request, 'users/profile_update.html', {'formPwd': formPwd, 'user': user})

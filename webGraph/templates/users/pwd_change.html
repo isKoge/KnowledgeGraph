@@ -1,0 +1,37 @@
+<!--
+ * @Author    : KoGe
+ * @Date      : 2022-04-30 23:33:41
+ * @Message   : 
+-->
+<!--
+ * @Author    : KoGe
+ * @Date      : 2022-04-08 19:27:18
+ * @Message   : 
+-->
+{% extends "base.html" %} 
+{% block mainbody %}
+<div class="container">
+    <div class="col" style="padding: 5% 5% 5% 5%">
+        <form class="form-login" action="" method="post" style="padding-left:32%; padding-right:32% ;">
+          {% if message %}
+            <div class="alert alert-warning">{{ message }}</div>
+          {% endif %}
+          {% csrf_token %}
+          <h2 class="text-center">欢迎登录</h2>
+                <div class="row">
+                    {{ form.username }}
+                    {{ form.username.errors}}
+                </div>
+                <div class="row">
+                    {{ form.password }}
+                    {{ form.password.errors }}
+                </div>    
+          <div margin-top: 10px;>
+              <button type="submit" class="btn btn-primary float-right" style="background-color:#4592fe ; padding:6px 38px;margin-left: 34%">登录</button>
+              <a href="/accounts/register/" class="text-primary" style="padding-left: 40px"><ins>新用户注册</ins></a>
+          </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+

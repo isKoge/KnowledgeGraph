@@ -87,7 +87,7 @@
                     </li>
                     {% if user.is_authenticated %}
                         <li>
-                            <a href="/accounts/{{ user.id }}">{{ user.username }}</a>
+                            <a href="/accounts/user/{{ user.id }}/profile">{{ user.username }}</a>
                         </li>
                         <li>
                             <a href='/accounts/logout'>
@@ -143,7 +143,7 @@
                             <span>问答</span>
                         </a>
                     </li>
-
+                    {% if perms.createUser %}
                     <li>
                         <a href="/kg/NodeManage">
                                 <i class="icon_contacts_alt"></i>
@@ -157,7 +157,7 @@
                             <span>学术成就管理</span>
                         </a>
                     </li>
-
+                    {% endif %}
                 </ul>
                 <!-- sidebar menu end-->
             </div>
