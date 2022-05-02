@@ -11,6 +11,7 @@ import json
 from django.contrib.auth.decorators import login_required
 from knowledge_graph.kgforms import *
 from django.views.decorators.csrf import csrf_exempt
+from tools import remove_none
 
 # 链接 Neo4j 
 neo_con = Neo4j()
@@ -93,20 +94,6 @@ def search_relation(request):
 	# return render(request,'kg/relation.html',{'ctx':ctx})
 	return render(request,'kg/relation.html',{'searchResult':json.dumps(searchResult,ensure_ascii=False)})
 
-def selectForm(formType, select_type):
-	if formType == 'n':
-		if select_type == 1:
-			form = ScholarForm()
-		elif select_type == 2:
-			form = PaperNodeForm()
-		elif select_type == 3:
-			form = ProjectNodeForm()
-		elif select_type == 4:
-			form = SchoolNodeForm()
-	elif formType == 'r':
-		form = RelForm()
-	return form
-
 @login_required
 def NodeManage(request):
 	db = neo_con 
@@ -122,10 +109,10 @@ def NodeManage(request):
 		if select_type == 'ScholarManage':
 			form = ScholarForm(request.POST)
 			node_type = 'scholar'
-		elif select_type == 2:
+		elif select_type == 'PaperManage':
 			form = PaperNodeForm(request.POST)
 			node_type = 'paper'
-		elif select_type == 3:
+		elif select_type == 'ProjectManage':
 			form = ProjectNodeForm(request.POST)
 			node_type = 'project'
 		else:
@@ -134,55 +121,81 @@ def NodeManage(request):
 
 		if form.is_valid():
 			node_message = form.cleaned_data
-			node_message = remove_none(node_message)
 			node_name = form.cleaned_data.get('name')
 			if select_fun == 1:
-				if db.createNode(node_type, **node_message):
-					message = '添加节点成功！'
-					form = selectForm('n',select_type)
-					return render(request,'kg/NodeManage.html',{'form':form, 'message':message})
+				node_message1 = remove_none(node_message)
+				if db.findByNode(node_type, **node_message1):
+					print(3)
+					message = '添加节点失败，节点已经存在，请尝试修改id后添加！'
+					rel = selectForm('n',select_type)
+					rel['message'] = message
+					return render(request,'kg/NodeManage.html',rel)	
 				else:
-					message = '添加节点失败，节点已经存在！'
-					return render(request,'kg/NodeManage.html',{'form':form, 'message':message})
+					print(4)
+					db.createNode(node_type, **node_message)
+					message = '添加节点成功！'
+					rel = selectForm('n',select_type)
+					rel['message'] = message
+					return render(request,'kg/NodeManage.html',rel)
+
 			elif select_fun == 2:
+				node_message = remove_none(node_message)
 				answer = db.delNode(node_type, **node_message)
 				if answer:
 					if answer == 1:
 						message = '删除节点成功！'
-						form = selectForm('n',select_type)
-						return render(request,'kg/NodeManage.html',{'form':form, 'message':message})
+						rel = selectForm('n',select_type)
+						rel['message'] = message
+						return render(request,'kg/NodeManage.html',rel)
 					else:
 						message = '节点存在多个，请选择其中一个！'
 						searchResult = list(db.findByNode(node_type, **node_message))
-						return render(request,'kg/NodeManage.html',{'searchResult':json.dumps(searchResult,ensure_ascii=False),'message':message})
+						rel = selectForm('n',select_type)
+						rel['message'] = message
+						rel['searchResult'] = json.dumps(searchResult,ensure_ascii=False)
+						return render(request,'kg/NodeManage.html',rel)
 				else:
 					message = '删除节点失败，节点不存在！'
-					return render(request,'kg/NodeManage.html',{'form':form, 'message':message})
+					rel = selectForm('n',select_type)
+					rel['message'] = message
+					return render(request,'kg/NodeManage.html',rel)
 			elif select_fun == 3:
-				print('?????????????????????')
+				node_message = remove_none(node_message)
+				# print('?????????search????????')
 				answer = db.findByNode(node_type, **node_message)
 				if answer:
-					print(form.cleaned_data)
-					message = '查找成功！'
+					# print(form.cleaned_data)
 					searchResult = list(answer)
-					return render(request,'kg/NodeManage.html',{'form':form,'searchResult':json.dumps(searchResult,ensure_ascii=False),'message':json.dumps(message)})
+					rel = selectForm('n',select_type)
+					rel['searchResult'] = json.dumps(searchResult,ensure_ascii=False)
+					return render(request,'kg/NodeManage.html',rel)
 				else:
 					message = '不存在节点！'
-					return render(request,'kg/NodeManage.html',{'form':form,'message':message})
+					rel = selectForm('n',select_type,form=form)
+					rel['message'] = message
+					return render(request,'kg/NodeManage.html',rel)
 			else:
+				node_message = remove_none(node_message)
 				answer = db.updateNode(node_message, node_type, name=node_name)
 				if answer:
 					if answer == 1:
 						message = '修改成功！'
-						return render(request,'kg/NodeManage.html',{'form':form, 'message':message})
+						rel = selectForm('n',select_type,form)
+						rel['message'] = message
+						return render(request,'kg/NodeManage.html',rel)
 					else:
 						message = '节点存在多个，请选择其中一个！'
 						searchResult = list(db.findByNode(node_type, **node_message))
-						return render(request,'kg/NodeManage.html',{'searchResult':json.dumps(searchResult,ensure_ascii=False),'message':message})
+						rel = selectForm('n',select_type)
+						rel['message'] = message
+						rel['searchResult'] = json.dumps(searchResult,ensure_ascii=False)
+						return render(request,'kg/NodeManage.html',rel)
 				else:
 					message = '修改失败！'
-					return render(request, 'kg/NodeManage.html', {'form': form, 'message':message})
-		else:print('!!!!!!!!!!!!!!!!')
+					rel = selectForm('n',select_type,form)
+					rel['message'] = message
+					return render(request, 'kg/NodeManage.html', rel)
+		else:print(form.errors)
 	else:
 		print('============else===========')
 		formScholar = ScholarForm()
@@ -199,11 +212,12 @@ def RelManage(request):
 		# 1.学者->论文(paper) ，2.学者->项目(project)，3.学者->学校(school)
 		# 选择功能，1增加，2删除，3查找
 		form = RelForm(request.POST)
-		select_fun = request.POST.get('select_fun')
+		select_fun = int(request.POST.get('select_fun'))
 		# papaerRel: author, accid, name
 		# projectRel: participant, accid, name
 		# schoolRel: nameScholar, accid. nameSchool
 		if form.is_valid():
+			print(form.cleaned_data)
 			select_type = form.cleaned_data.get('relType')
 			scholarNode = form.cleaned_data.get('ScholarName')
 			scholarAccid = form.cleaned_data.get('acc_id')
@@ -215,58 +229,66 @@ def RelManage(request):
 				n1_key = {'name':scholarNode}
 			n2_key = {'name':toNode}
 		
-			if select_fun == 1:
+			if select_fun == 2:
+				print(2)
 				answer = db.createRel('scholar',n1_key,n2_type=None,n2_key=n2_key, message=message)
 				if answer:
 					message = '添加关系成功！'
-					form = selectForm('r',select_type)
-					return render(request,'kg/RelMange.html',{'form':form, 'message':message})
+					rel = selectForm('r',select_type)
+					rel['message'] = message
+					return render(request,'kg/RelManage.html',rel)
 				else:
 					message = '添加关系失败！'
-					return render(request,'kg/RelMange.html',{'form':form, 'message':message})
+					rel = selectForm('r',select_type,form)
+					rel['message'] = message
+					return render(request,'kg/RelManage.html',rel)
 
-			elif select_fun == 2:
+			elif select_fun == 3:
+				print(3)
 				answer = db.delRel(n1_key,n2_key,'scholar',n2_type=None)
 				if answer:
 					if answer == 1:
 						message = '删除关系成功！'
-						form = selectForm('r',select_type)
-						return render(request,'kg/RelMange.html',{'form':form, 'message':message})
+						rel = selectForm('r',select_type)
+						rel['message'] = message
+						return render(request,'kg/RelManage.html',rel)
 					elif answer == 2:
 						message = '同名学者存在多个，请选择其中一个！'
 						searchResult = list(db.findByNode(node_type='scholar',**n1_key))
-						return render(request,'kg/RelManage.html',{'searchResult':json.dumps(searchResult,ensure_ascii=False),'message':message})
+						rel = selectForm('r',select_type)
+						rel['message'] = message
+						rel['searchResult'] = json.dumps(searchResult,ensure_ascii=False)
+						return render(request,'kg/RelManage.html',rel)
 					else:
 						message = '同名节点存在多个，请选择其中一个！'
 						searchResult = list(db.findByNode(node_type=None,**n2_key))
-						return render(request,'kg/RelManage.html',{'searchResult':json.dumps(searchResult,ensure_ascii=False),'message':message})
+						rel = selectForm('r',select_type)
+						rel['message'] = message
+						rel['searchResult'] = json.dumps(searchResult,ensure_ascii=False)
+						return render(request,'kg/RelManage.html',rel)
 				else:
 					message = '删除关系失败，关系不存在！'
-					return render(request,'kg/RelMange.html',{'form':form, 'message':message})
+					return render(request,'kg/RelManage.html',{'form':form, 'message':message})
 			else:
 				answer = db.findRelBy2Node(n1_key,n2_key,'scholar')
+				print(1)
 				if answer:
-					message = '关系查找成功！'
 					searchResult = list(answer)
-					return render(request,'kg/RelManage.html',{'searchResult':json.dumps(searchResult,ensure_ascii=False),'message':message})
+					rel = selectForm('r',select_type)
+					rel['message'] = message
+					rel['searchResult'] = json.dumps(searchResult,ensure_ascii=False)
+					return render(request,'kg/RelManage.html',rel)
 				else:
-					message = '不存在节点！'
-					return render(request,'kg/RelMange.html',{'message':message})
+					message = '不存在关系！'
+					rel = selectForm('r',select_type,form)
+					rel['message'] = message
+					return render(request,'kg/RelManage.html',rel)
 		else:
-			pass
+			print(form.errors)
+			
 	else:
 		form = RelForm()
 	return render(request, 'kg/RelManage.html', {'form':form})
-
-#清楚表单空格
-def remove_none(text):
-	answer = {}
-	for k,v in text.items():
-		if v == '':
-			pass
-		else:
-			answer[k] = v
-	return answer
 
 # 前端点击返回数据
 @csrf_exempt
@@ -274,9 +296,11 @@ def jsReturn(request):
 	db = neo_con
 	nodeName = request.POST.get('data')
 	nodeType = request.POST.get('style')
+	accid = request.POST.get('accid')
+	print(accid)
 
 	if nodeType == '0':
-		searchResult = db.findByNode(node_type='scholar', name=nodeName)
+		searchResult = db.findByNode(node_type='scholar', name=nodeName, acc_id=accid)
 	elif nodeType == '1':
 		searchResult = db.findByNode(node_type='paper', name=nodeName)
 	elif nodeType == '2':
@@ -302,3 +326,40 @@ def overview(request):
 		tempList.append(temp)
 	countByStats['labels'] = tempList
 	return render(request,'kg/overview.html',{'countByScholar':json.dumps(countByScholar,ensure_ascii=False),'countBySchool':json.dumps(countBySchool,ensure_ascii=False),'countByStats':json.dumps(countByStats,ensure_ascii=False)})
+
+# 根据类型返回表单
+def selectForm(formType, select_type, form=None):
+	rel = {}
+	if form:
+		if formType == 'n':
+			if select_type == 'ScholarManage':
+				rel['formScholar'] = form
+			elif select_type == 'PaperManage':
+				rel['formPaper'] = form
+			elif select_type == 'ProjectManage':
+				rel['formProject'] = form
+			elif select_type == 'SchoolManage':
+				rel['formSchool'] = form
+		elif formType == 'r':
+			rel['form'] = form
+	else:
+		if formType == 'n':
+			if select_type == 'ScholarManage':
+				form = ScholarForm()
+				rel['formScholar'] = form
+				# print(1)
+			elif select_type == 'PaperManage':
+				form = PaperNodeForm()
+				rel['formPaper'] = form
+
+			elif select_type == 'ProjectManage':
+				form = ProjectNodeForm()
+				rel['formProject'] = form
+
+			elif select_type == 'SchoolManage':
+				form = SchoolNodeForm()
+				rel['formSchool'] = form
+		elif formType == 'r':
+			form = RelForm()
+			rel['form'] = form
+	return rel

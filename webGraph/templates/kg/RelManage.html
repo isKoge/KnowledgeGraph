@@ -1,13 +1,13 @@
 {% extends "base.html" %} 
 {% block mainbody %}
    
-   <head>
-   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-       <title></title>
-       <meta charset="utf-8" />
-       <script src="/static/js/echarts.js"></script>
-   {#    <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/echarts-all-3.js"></script>#}
-   </head>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title></title>
+        <meta charset="utf-8" />
+        <script src="/static/js/jquery-1.8.3.min.js"></script>
+        <script src="/static/js/echarts.js"></script>
+    </head>
    <title>管理</title>
    <div class="container">
        <div class="row">
@@ -26,13 +26,15 @@
        		</header>
        		<div class = "panel-body">
 
-			    <form  id ="searchRelationForm" class="form-inline" style="padding-left: 10% ; padding-right: 10%" method="post">
+			    <form  id ="searchRelationForm" class="form-inline" style="padding-left: 10% ; padding-right: 10%" method="post" action="RelManage">
                     {% csrf_token %}
 			    	<div id = "entity1" class="form-group" style="padding: 2%">
 			        	{{ form.ScholarName }}
+                        {{ form.Scholarname.errors }}
 			 		</div>
                     <div id = "entity1id" class="form-group" style="padding: 2%">
 			        	{{ form.acc_id }}
+                        {{ form.acc_id.errors }}
 			 		</div>
                      <div id = "relType" class = "form-group" style="padding: 2%">
 			        	{{ form.relType }}
@@ -44,19 +46,25 @@
 			        	{{ form.message }}
 			        </div>
 			        <div class="btn-group" style="padding: 2%">
-			            <button type="button" id="btnSearch" class="btn btn-primary" onclick = "document.getElementById('searchRelationForm').submit();">Search</button>
+			            <button name="select_fun" value="1" type="submit" id="btnSearch" class="btn btn-primary" style="margin-right:30px;background-color:#4592fe ; padding:6px 38px">查找</button>
+                        <button name="select_fun" value="2" type="submit" id="btnSearch" class="btn btn-primary" style="margin-right:30px;background-color:#4592fe ; padding:6px 38px">增加</button>
+                        <button name="select_fun" value="3" type="submit" id="btnSearch" class="btn btn-danger" style="margin-right:30px;padding:6px 38px">删除</button>
 			        </div>
 				</form>
 			</div>
 		</div>
 	</div>
-       <p>
-           <div class = "col-md-12">
-               {% if message %}
-                   {{ message }}
-               {% endif %}
-           </div>
-       </p>
+    {% if message %}
+	<div class = "col-md-12">
+		<div class = "panel panel-default">
+			<div class = "panel-body">
+				<div style="padding: 2%">
+					<h2>{{ message }}</h2>
+				</div>
+			</div>
+		</div>
+	</div>
+	{% endif %}
    <!--relation start-->
    {% if searchResult %}
    <!-- 为ECharts准备一个具备大小（宽高）的Dom -->
@@ -90,6 +98,7 @@
 <script type="text/javascript">
    var searchResult = {{searchResult|safe}}
    //用表格列出所有的关系
+   console.log('----------',searchResult)
    tableData = []
    for (var i = 0 ; i < searchResult.length ; i++){
        relationData = {} ;
@@ -98,7 +107,7 @@
        relationData['entity2'] = searchResult[i]['n2']['name'] ;
        tableData.push(relationData) ;
    }
-   
+   console.log('+++++++++',tableData)
    jQuery(function(){
        $('.table').footable({
        "columns": [{"name":"entity1",title:"Entity1"} ,

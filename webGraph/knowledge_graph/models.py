@@ -4,9 +4,8 @@ Author    : KoGe
 Date      : 2022-04-14 15:21:24
 Message   : 
 '''
-from django.db import models
 from py2neo import Graph, Node, Relationship, NodeMatcher, Subgraph, RelationshipMatcher
-
+from random import randint
 class Neo4j():
 	graph = None
 	def __init__(self):
@@ -71,28 +70,28 @@ class Neo4j():
 
 	# 根据节点属性寻找节点
 	def findByNode(self, node_type=None, **node_key):
-		print(node_key)
 		matcher = NodeMatcher(self.graph)
 		if node_type:
 			answer = matcher.match(node_type, **node_key)
 		else:
-			answer = matcher.match(labels=None, **node_key)
+			answer = matcher.match(**node_key)
 		return answer
 	
 	# 根据两个节点查找关系，可查阅两个学者关系
 	def findRelBy2Node(self, n1_key, n2_key, n1_type=None, n2_type=None, **rel_message):
 		matcher = RelationshipMatcher(self.graph)
+		
 		n1 = self.findByNode(node_type=n1_type, **n1_key).first()
 		n2 = self.findByNode(node_type=n2_type, **n2_key).first()
 		answer = []
-		if n1 and n2:
+		if (n1 and n2) and (n1_key == 'scholar') and (n2_key == 'scholar'):
 			n1_name = n1.get('name')
 			n2_name = n2.get('name')
-			# print(n1_name,n2_name)
+			print(n1_name,n2_name)
 			searchResult = self.graph.run("MATCH p=(n1:scholar {name:\"" + n1_name + "\"})-[*..2]-(n2:scholar{name:\""+  n2_name +"\"}) RETURN p").data()	
 			if searchResult:
 				for i in searchResult:
-					a = i['p'].relationship
+					a = i['p'].relationships
 					for r in a:
 						temp = {}
 						temp['n1'] = r.start_node
@@ -106,7 +105,7 @@ class Neo4j():
 							temp['rel']['label'] = 'work_for_school'
 						answer.append(temp)
 			else:
-				print("不存在此关系！")
+				print("1不存在此关系！")
 		else:
 			temp = {}
 			searchResult = matcher.match((n1,n2), r_type=None, **rel_message)
@@ -118,24 +117,30 @@ class Neo4j():
 				temp['rel']['label'] = relResult.get('label')
 				answer.append(temp)
 			else:
-				print("不存在此关系！")
+				print("2不存在此关系！")
 		return answer
 
 	# 创建节点
 	def createNode(self, node_type, **node_message):
-		if self.findByNode(node_type, **node_message):
-			print('节点已经存在！')
+		if ('acc_id' in node_message) and (node_message['acc_id'] == ''):
+			print(1)
+			node_message['acc_id'] = str(randint(10,10000))
 		else:
-			n = Node(node_type, **node_message)
-			self.graph.create(n)
-			print('创建节点成功！')
-			return 1
+			pass
+		n = Node(node_type, **node_message)
+		self.graph.create(n)
+		print('创建节点成功！')
+		return 1
 
 	# 创建关系
 	def createRel(self, n1_type, n1_key, n2_type, n2_key, **rel_message):
 		matcher = NodeMatcher(self.graph)
 		n1 = matcher.match(n1_type, **n1_key).first()
-		n2 = matcher.match(n2_type, **n2_key).first()
+		print(n2_key)
+		if n2_type:
+			n2 = matcher.match(n2_type, **n2_key).first()
+		else:
+			n2 = matcher.match(**n2_key).first()
 		label = ''
 		if n2_type == 'school':
 			label = 'work_for_school'
@@ -154,8 +159,8 @@ class Neo4j():
 			searchResult = list(answer)
 			if len(searchResult) == 1:
 				for k,v in update_message.items():
-					searchResult[k] = v
-				sub = Subgraph(answer)
+					searchResult[0][k] = v
+				sub = Subgraph(searchResult)
 				self.graph.push(sub)
 				print('修改节点成功')
 				return 1
@@ -174,7 +179,9 @@ class Neo4j():
 		if answer:
 			searchResult = list(answer)
 			if len(searchResult) == 1:
-				self.graph.delete(answer)
+				self.graph.delete(answer.first())
+				# name = searchResult[0].get('name')
+				# self.graph.run("MATCH (n) WHERE n.name = \"" + name + "\" DETACH DELETE (n)")
 				print('删除节点成功！')
 				return 1
 			else:

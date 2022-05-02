@@ -6,7 +6,7 @@ Message   : 辅助工具
 '''
 import re
 from knowledge_graph.models import Neo4j
-
+from knowledge_graph.kgforms import *
 
 neo_con = Neo4j()
 neo_con.connectDB()
@@ -35,3 +35,15 @@ def accid_check(accid):
     searchResult = db.findByaccid(accid)
     if searchResult:
         return len(searchResult)
+
+
+
+#清楚表单空格
+def remove_none(text):
+	answer = {}
+	for k,v in text.items():
+		if v == '':
+			pass
+		else:
+			answer[k] = v
+	return answer

@@ -179,13 +179,13 @@ class RelForm(forms.Form):
             raise forms.ValidationError('学者节点不存在！')
         return ScholarName
     
-    def clean_acc_id(self):
-        acc_id = self.cleaned_data.get('acc_id')
-        if accid_check(acc_id):
-            pass
-        else:
-            raise forms.ValidationError('请输入正确的作者id号!')
-        return acc_id
+    # def clean_acc_id(self):
+    #     acc_id = self.cleaned_data.get('acc_id')
+    #     if accid_check(acc_id):
+    #         pass
+    #     else:
+    #         raise forms.ValidationError('请输入正确的作者id号!')
+    #     return acc_id
     
     def clean_nodeName(self):
         nodeName = self.cleaned_data.get('nodeName')
