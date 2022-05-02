@@ -135,13 +135,17 @@
             </div>
         </div>
     </div>
-    <p>
-        <div class = "col-md-12">
-            {% if message %}
-                {{ message }}
-            {% endif %}
-        </div>
-    </p>
+    {% if message %}
+	<div class = "col-md-12">
+		<div class = "panel panel-default">
+			<div class = "panel-body">
+				<div style="padding: 2%">
+					<h2>{{ message }}</h2>
+				</div>
+			</div>
+		</div>
+	</div>
+	{% endif %}
 <!--relation start-->
 {% if searchResult %}
     <!-- 为ECharts准备一个具备大小（宽高）的Dom -->

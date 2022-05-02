@@ -28,13 +28,13 @@ class RegistrationForm(forms.Form):
     def clean_username(self):
         username = self.cleaned_data.get('username')
         if len(username) < 3:
-            raise forms.ValidationError('Username must be at least 3 characters log !')
+            raise forms.ValidationError('用户名不能少于3位！')
         elif len(username) > 20:
-            raise forms.ValidationError('Username is too long !')
+            raise forms.ValidationError('用户名最多20位！')
         else:
             filter_result =User.objects.filter(username__exact=username)
             if filter_result:
-                raise forms.ValidationError('Username already exists !')
+                raise forms.ValidationError('用户名已经存在！')
         return username
     
     # 检查 email 是否合法，是否存在
@@ -43,18 +43,18 @@ class RegistrationForm(forms.Form):
         if email_check(email):
             filter_result = User.objects.filter(email__exact = email)
             if filter_result:
-                raise forms.ValidationError('Email already exists !')
+                raise forms.ValidationError('邮箱已经存在！')
         else:
-            raise forms.ValidationError('Please enter a valid email !')
+            raise forms.ValidationError('请检查邮箱格式！')
         return email
 
     #检查 password 是否合格
     def clean_password1(self):
         password1 = self.cleaned_data.get('password1')
         if len(password1) < 3:
-            raise forms.ValidationError('Password is too short !')
+            raise forms.ValidationError('密码不能少于3位！')
         elif len(password1) > 20:
-            raise forms.ValidationError('Password is too long !')
+            raise forms.ValidationError('密码不能超过20位！')
         return password1
     
     def clean_password2(self):
@@ -93,7 +93,7 @@ class ProfileForm(forms.Form):
         if telephone_check(telephone):
             return telephone
         else:
-            raise forms.ValidationError('Please enter a valid Telephone !')
+            raise forms.ValidationError('请输入合理的电话！')
 
 class PwdChangeForm(forms.Form):
     old_password = forms.CharField(label='Old Password', widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': "请输入旧密码！"}))
@@ -104,9 +104,9 @@ class PwdChangeForm(forms.Form):
         password1 = self.cleaned_data.get('password1')
 
         if len(password1) < 6:
-            raise forms.ValidationError('Password is too short !')
+            raise forms.ValidationError('密码不能低于6位！')
         elif len(password1) > 20:
-            raise forms.ValidationError('Password is too long !')
+            raise forms.ValidationError('密码不能超过20位！')
         return password1
     
     def clean_password2(self):
@@ -114,7 +114,7 @@ class PwdChangeForm(forms.Form):
         password2 = self.cleaned_data.get('password2')
 
         if password1 and password2 and password1 != password2:
-            raise forms.ValidationError('The passwords are inconsistent !')
+            raise forms.ValidationError('两次密码不一致！')
         return password2
 
 

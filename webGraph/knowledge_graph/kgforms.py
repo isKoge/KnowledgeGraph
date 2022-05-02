@@ -7,6 +7,7 @@ Message   : forms
 from email.mime import application
 from email.policy import default
 from lib2to3.pytree import Node
+from turtle import textinput
 from django import forms
 from tools import *
 
@@ -163,11 +164,11 @@ class RelForm(forms.Form):
         (b,'项目参与者'),
         (c,'工作地点')
     ]
-    ScholarName = forms.CharField(label='学者名字', max_length=100, required=True)
-    acc_id = forms.CharField(label='学者id', max_length=10, required=False)
-    relType = forms.ChoiceField(choices=RELTYPE_CHOICES)
-    nodeName = forms.CharField(label='节点名称', max_length=30, required=True)
-    message = forms.CharField(label='其他信息', max_length=100, required=False)
+    ScholarName = forms.CharField(label='学者名字', max_length=100, required=True, widget=forms.TextInput(attrs={'class':'form-control','placeholder':"学者姓名"}))
+    acc_id = forms.CharField(label='学者id', max_length=10, required=False, widget=forms.TextInput(attrs={'class':'form-control','placeholder':"学者id"}))
+    relType = forms.ChoiceField(choices=RELTYPE_CHOICES, widget=forms.Select(attrs={'class':'form-control','placeholder':"类型"}))
+    nodeName = forms.CharField(label='节点名称', max_length=30, required=True, widget=forms.TextInput(attrs={'class':'form-control','placeholder':"学术成就"}))
+    message = forms.CharField(label='其他信息', max_length=100, required=False, widget=forms.TextInput(attrs={'class':'form-control','placeholder':"其它信息"}))
 
 
     def clean_ScholarName(self):
