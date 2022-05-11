@@ -6,12 +6,12 @@
 {% extends "base.html" %} {% block mainbody %}
 
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title></title>
-    <meta charset="utf-8" />
-    <script src="/static/js/echarts.js"></script>
-{#    <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/echarts-all-3.js"></script>#}
-</head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title></title>
+        <meta charset="utf-8" />
+        <script src="/static/js/jquery-1.8.3.min.js"></script>
+        <script src="/static/js/echarts.js"></script>
+    </head>
 <title>实体</title>
 <div class="container">
     <div class="row">
@@ -40,233 +40,502 @@
                 </form>
             </div>
         </div>
-
-        
     </div>
-    <p>
-        <div class = "col-md-12">
-            {% if ctx %}
-                <div class="panel panel-default">
-                    <header class ="panel-heading">
-                        <div class = "panel-body">
-                            <h2>数据库中暂未添加该实体</h2>
-                        </div>
-                    </header>
-                </div>
-            {% endif %}
-        </div>
-    </p>
+    {% if message %}
+	<div class = "col-md-12">
+		<div class = "panel panel-default">
+			<div class = "panel-body">
+				<div style="padding: 2%">
+					<h2>{{ message }}</h2>
+				</div>
+			</div>
+		</div>
+	</div>
+	{% endif %}
 <!--relation start-->
-{% if entityRelation %}
+{% if searchResult %}
     <!-- 为ECharts准备一个具备大小（宽高）的Dom -->
     <div class = "col-md-12">
         <div class="panel panel-default ">
-            <header class="panel-heading">
-                关系图 :
-            </header>
-            <div class = "panel-body ">
-                <div id="graph" style="width: 90%;height:600px;"></div>
+	        <header class="panel-heading">
+	            关系图 :
+	        </header>
+            <div class = "panel-body " style="position:relative;">
+				<div id="graph-info" style="position: absolute;left:0;top: 0; z-index: 99;"></div>
+                <div id="graph" style="width: 100%;height:600px;"></div>
             </div>
         </div>
     </div>
-{% endif %}
-{% if entityRelation %}
-<div class = "col-md-12">
-    <div class="panel panel-default">
-    <header class="panel-heading">
-        关系列表 :
-    </header>
-        <div class = "panel-body">
-            <table class = "table" data-paging =  "true" data-sorting="true"></table>
-        </div>
-    </div>
+    <!-- Footable -->
+    <div class = "col-md-12">
+	    <div class="panel panel-default">
+	    	<header class="panel-heading">
+	       	 关系列表 :
+	   		</header>
+	        <div class = "panel-body">
+	            <table class = "table" data-paging =  "true" data-sorting="true"></table>
+	        </div>
+	    </div>
+	</div>
+    {% endif %}
+
 </div>
-{% endif %}
-</div>
-</div>
-{% if entityRelation %}
-<script src="/static/js/jquery.min.js"></script>
+
+{% if searchResult %}
 <script type="text/javascript">
-        // 将后端的查询结果使用echarts展示
-        var ctx = [ {{ ctx|safe }} ] ;
+	var searchResult = {{searchResult|safe}}
+	//用表格列出所有的关系
+    tableData = []
+    for (var i = 0 ; i < searchResult.length ; i++){
+        relationData = {} ;
+        relationData['entity1'] = searchResult[i]['n1']['name'];
+        relationData['relation'] = searchResult[i]['rel']['label'] ;
+        relationData['entity2'] = searchResult[i]['n2']['name'] ;
+        tableData.push(relationData) ;
+    }
+	
+    jQuery(function(){
+        $('.table').footable({
+        "columns": [{"name":"entity1",title:"Entity1"} ,
+                  {"name":"relation",title:"Relation"},
+                  {"name":"entity2",title:"Entity2"}],
+        "rows": tableData
+        });
+    });
 
-        //{entity2,rel}
-        var entityRelation = [ {{ entityRelation|safe }} ] ;
+    //echarts 数据
+    var nodes = [] ;
+    var links = [] ;
+	var rels = [] ;	
 
-        var data = [] ;
-        var links = [] ;
-        if(ctx.length == 0){
-            var node = {} ;
-            var url = decodeURI(location.search) ;
-            var str = "";
-            if(url.indexOf("?") != -1){
-                str = url.split("=")[1]
-            }
-            //实体１
-            node['name'] = str;
-            //alert(document.getElementById('user_text').value)
-            node['draggable'] = true ;
-            var id = 0; 
-            node['id'] = id.toString() ;
-            data.push(node) ;
-
-            //获取实体２，存储在data中，如果实体2已经存在于data中，则不push
-            var maxDisPlayNode = 15 ;
-            for( var i = 0 ;i < Math.min(maxDisPlayNode,entityRelation[0].length) ; i++ ){
-                node = {} ;
-                node['name'] = entityRelation[0][i]['entity2']['title'] ;
-                node['draggable'] = true ;
-                if('url' in entityRelation[0][i]['entity2']){
-                    node['category'] = 1 ;
-                }
-                else{
-                    node['category'] = 2 ;
-                }
-                id = i + 1
-                node['id'] = id.toString();
-                var flag = 1 ;
-                relationTarget = id.toString() ;
-                for(var j = 0 ; j<data.length ;j++){
-                    if(data[j]['name'] === node['name']){
-                        flag = 0 ;
-                        relationTarget = data[j]['id']  ;
-                        break ;
-                    }
-                }
-                relation = {}
-                relation['source'] = 0 ;
-                relation['target'] = relationTarget ;
-                relation['category'] = 0 ;               
-
-                if(flag === 1){
-                    data.push(node) ;
-                    relation['value'] = entityRelation[0][i]['rel']['type'] ;
-                    relation['symbolSize'] = 10
-                    links.push(relation) ;
-                }
-                else{
-                    maxDisPlayNode += 1 ;
-                    for(var j = 0; j<links.length ;j++){
-                        if(links[j]['target'] === relationTarget){
-                            links[j]['value'] = links[j]['value']+" | "+entityRelation[0][i]['rel']['type'] 
-                            break ;
-                        }
-                    }
-
-                }
-
-            }
-
-            //用表格列出所有的关系
-            tableData = []
-            for (var i = 0 ; i < entityRelation[0].length ; i++){
-                relationData = {} ;
-                relationData['entity1'] = str ;
-                relationData['relation'] = entityRelation[0][i]['rel']['type'] ;
-                relationData['entity2'] = entityRelation[0][i]['entity2']['title'] ;
-                tableData.push(relationData) ;
-            }
-            jQuery(function(){
-                $('.table').footable({
-                "columns": [{"name":"entity1",title:"Entity1"} ,
-                          {"name":"relation",title:"Relation"},
-                          {"name":"entity2",title:"Entity2"}],
-                "rows": tableData
-                });
-            });
-
+    //构造展示的数据
+    var maxDisPlayNode = 30 ;
+    var id = 0 ;
+    for( var i = 0 ;id < maxDisPlayNode&& i<searchResult.length ; i++ ){
+        //获取node1
+        node1 = {} ;
+		node1['category'] = 3 ;
+        node1['name'] = searchResult[i]['n1']['name'] ;
+		node1['acc_id'] = searchResult[i]['n1']['acc_id'] ;
+        node1['draggable'] = true ;
+        if('field' in searchResult[i]['n1']){
+            node1['category'] = 0 ;
         }
-        // 基于准备好的dom，初始化echarts实例
-        var myChart = echarts.init(document.getElementById('graph'));
-        
-        option = {
-            title: {
-                text: ''
-            },
-            tooltip: {},
-            animationDurationUpdate: 1500,
-            animationEasingUpdate: 'quinticInOut',
-            label: {
-                normal: {
-                    show: true,
-                    textStyle: {
-                        fontSize: 12
-                    },
-                }
-            },
-            legend: {
-                x: "center",
-                show: false
-            },
-            series: [
+        if('paper_id' in searchResult[i]['n1']){
+            node1['category'] = 1 ;
+        }
+		if('originAndId' in searchResult[i]['n1']){
+			node1['category'] = 2 ;
+		}
+        var flag = 1 ;
+	
+        relationTarget = id.toString() ;
+        for(var j = 0 ; j<nodes.length ;j++){
+        	if((nodes[j]['name'] === node1['name']) && (nodes[j]['acc_id'] === node1['acc_id'])){
+        		flag = 0 ;
+        		relationTarget = nodes[j]['id'] ;
+        		break ;
+        	}
+        }
 
-                {
-                    type: 'graph',
-                    layout: 'force',
-                    symbolSize: 45,
-                    focusNodeAdjacency: true,
-                    roam: true,
-                    edgeSymbol: ['none', 'arrow'],
-                    categories: [{
-                        name: '查询实体',
-                        itemStyle: {
-                            normal: {
-                                color: "#009800",
-                            }
-                        }
-                    }, {
-                        name: 'HudongItem',
-                        itemStyle: {
-                            normal: {
-                                color: "#4592FF",
-                            }
-                        }
-                    }, {
-                        name: 'NewNode',
-                        itemStyle: {
-                            normal: {
-                                color: "#C71585",
-                            }
-                        }
-                    }],
-                    label: {
-                        normal: {
-                            show: true,
-                            textStyle: {
-                                fontSize: 12,
-                            },
-                        }
-                    },
-                    force: {
-                        repulsion: 1000
-                    },
-                    edgeSymbolSize: [4, 50],
-                    edgeLabel: {
-                        normal: {
-                            show: true,
-                            textStyle: {
-                                fontSize: 10
-                            },
-                            formatter: "{c}"
-                        }
-                    },
-                    data: data,
-                    links: links,
-                    lineStyle: {
-                        normal: {
-                            opacity: 0.9,
-                            width: 1.3,
-                            curveness: 0,
-                            color:"#262626"
-                        }
-                    }
-                }
-            ]
-        };
+        node1['id'] = relationTarget ; 
+        if(flag === 1){
+        	id++ ;
+        	nodes.push(node1) ;
+        }
 
-// 使用刚指定的配置项和数据显示图表。
-        myChart.setOption(option);
+        //获取node2
+        node2 = {} ;
+        node2['name'] = searchResult[i]['n2']['name'] ;
+        node2['draggable'] = true ;
+		if('home_page' in searchResult[i]['n2']){
+            node2['category'] = 0;
+        }
+        else if('paper_id' in searchResult[i]['n2']){
+            node2['category'] = 1 ;
+        }
+		else if('originAndId' in searchResult[i]['n2']){
+			node2['category'] = 2 ;
+		}
+		else{
+			node2['category'] = 3;
+		}
+
+		// //
+
+
+        flag = 1 ;
+        relationTarget = id.toString() ;
+        for(var j = 0 ; j<nodes.length ;j++){
+        	if(nodes[j]['name'] === node2['name']){
+        		flag = 0 ;
+        		relationTarget = nodes[j]['id'] ;
+        		break ;
+        	}
+        }
+        node2['id'] = relationTarget ; 
+        if(flag === 1){
+        	id++ ;
+        	nodes.push(node2) ;
+        }
+        //获取relation
+        relation = {}
+        relation['source'] = node1['id'];
+        relation['target'] = node2['id'] ;
+        relation['category'] = 0 ;
+        flag = 1;  
+        for(var j = 0 ;j<links.length;j++){
+        	if(links[j]['source'] == relation['source'] && links[j]['target'] == relation['target']){
+        		links[j]['value'] = links[j]['value'] + searchResult[i]['rel']['label'] ;
+        		flag = 0 ;
+        		break ;
+        	}
+        }           
+        if(flag === 1){
+        	relation['value'] = searchResult[i]['rel']['label'] ;
+        	relation['symbolSize'] = 10;
+        	links.push(relation) ;
+        }
+
+    }
+
+
+     // 基于准备好的dom，初始化echarts实例
+    var myChart = echarts.init(document.getElementById('graph'));
+	
+    myChart.on('click',(p)=>{
+		var info = $('#graph-info')
+		console.log(p)
+		console.log('------',p.data.acc_id)
+		$.post("/kg/js",
+		{
+			csrf_token:'{{ csrf_token }}',
+			data:p.data.name,
+			style:p.data.category,
+			accid:p.data.acc_id,
+		},
+  		function(data,status){
+			console.log("Data: " + data + "\nStatus: " + status);
+			var data = $.parseJSON(data)[0]
+			// for (var i in a[0]){
+			// 	info.append(a[0][i],'<br>')	 
+			// }
+			html = ''
+
+			switch (p.data.category) {
+			case 0:
+                var name = document.getElementById('user_text')
+                name.value = data['name']
+				html = `  
+			<style>
+			.info-detail {
+				width: 200px;
+				height: 300px;
+				color: rgb(255, 255, 255);
+				font-weight: 3000;
+				user-select: none;
+			}
+
+			.info-title {
+				background-color: rgba(46, 82, 112, 0.7);
+				height: 65px;
+				line-height: 65px;
+				text-align: center;
+				font-size: large;
+			}
+
+			.info-form {
+				background-color: rgba(133, 154, 171, 0.8);
+			}
+
+			.info-form-row {
+				height: 48px;
+				line-height: 48px;
+				padding: 0 15px;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+			</style>
+			<div class='info-detail'>
+			<div class="info-title">
+				学者信息
+			</div>
+			<div class="info-form">
+				<div class="info-form-row">姓名：`+ data['name'] + `</div>
+				<div class="info-form-row">单位：`+ data['work_unit'] + `</div>
+				<div class="info-form-row">职称：`+ data['scholar_title'] + `</div>
+				<div class="info-form-row">学历：`+ data['degree'] + `</div>
+				<div class="info-form-row">研究领域：`+ data['field'] + `</div>
+				<div class="info-form-row">邮箱：`+ data['email'] + `</div>
+				<div class="info-form-row" style="cursor: pointer;" onclick="window.open('`+ data['home_page'] + `')">个人主页（点击查看）</div>
+			</div>
+			</div>    
+			`
+			break;
+			case 1:
+                var name = document.getElementById('user_text')
+                name.value = data['name']
+				html = `
+				<style>
+			.info-detail {
+				width: 200px;
+				height: 300px;
+				color: rgb(255, 255, 255);
+				font-weight: 3000;
+				user-select: none;
+			}
+
+			.info-title {
+				background-color: rgba(46, 82, 112, 0.7);
+				height: 65px;
+				line-height: 65px;
+				text-align: center;
+				font-size: large;
+			}
+
+			.info-form {
+				background-color: rgba(133, 154, 171, 0.8);
+			}
+
+			.info-form-row {
+				height: 48px;
+				line-height: 48px;
+				padding: 0 15px;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+			</style>
+				<div class='info-detail'>
+				<div class="info-title">
+					论文信息
+				</div>
+			<div class="info-form">
+				<div class="info-form-row">名称：`+ data['name'] + `</div>
+				<div class="info-form-row">来源：`+ data['paper_source'] + `</div>
+			</div>
+			</div>    
+			`
+			break;
+			case 2:
+                var name = document.getElementById('user_text')
+                name.value = data['name']
+				html = `
+				<style>
+			.info-detail {
+				width: 200px;
+				height: 300px;
+				color: rgb(255, 255, 255);
+				font-weight: 3000;
+				user-select: none;
+			}
+
+			.info-title {
+				background-color: rgba(46, 82, 112, 0.7);
+				height: 65px;
+				line-height: 65px;
+				text-align: center;
+				font-size: large;
+			}
+
+			.info-form {
+				background-color: rgba(133, 154, 171, 0.8);
+			}
+
+			.info-form-row {
+				height: 48px;
+				line-height: 48px;
+				padding: 0 15px;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+			</style>
+				<div class='info-detail'>
+				<div class="info-title">
+					项目信息
+				</div>
+			<div class="info-form">
+				<div class="info-form-row">名称：`+ data['name'] + `</div>
+				<div class="info-form-row">申请：`+ data['application'] + `</div>
+				<div class="info-form-row">来源：`+ data['originAndId'] + `</div>
+				<div class="info-form-row">成员：`+ data['participant'] + `</div>
+			</div>
+			</div>    
+			`
+			break;
+			case 3:
+                var name = document.getElementById('user_text')
+                name.value = data['name']
+				html = `
+				<style>
+			.info-detail {
+				width: 200px;
+				height: 300px;
+				color: rgb(255, 255, 255);
+				font-weight: 3000;
+				user-select: none;
+			}
+
+			.info-title {
+				background-color: rgba(46, 82, 112, 0.7);
+				height: 65px;
+				line-height: 65px;
+				text-align: center;
+				font-size: large;
+			}
+
+			.info-form {
+				background-color: rgba(133, 154, 171, 0.8);
+			}
+
+			.info-form-row {
+				height: 48px;
+				line-height: 48px;
+				padding: 0 15px;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+			</style>
+				<div class='info-detail'>
+				<div class="info-title">
+					学校信息
+				</div>
+			<div class="info-form">
+				<div class="info-form-row">名称：`+ data['name'] + `</div>
+			</div>
+			</div>    
+			`
+			}
+			info.html(html)
+
+		});
+		
+	})
+    option = {
+	    title: {
+	        text: ''
+	    },
+	    tooltip: {},
+	    animationDurationUpdate: 150,
+	    animationEasingUpdate: 'quinticInOut',
+	    label: {
+	        normal: {
+	            show: true,
+	            textStyle: {
+	                fontSize: 12
+	            },
+	        }
+	    },
+	    legend: {
+	        x: "center",
+	        show: false
+	    },
+	    series: [
+
+	        {
+	            type: 'graph',
+	            layout: 'force',
+	            symbolSize: 45,
+	            focusNodeAdjacency: true,
+	            roam: true,
+	            edgeSymbol: ['none', 'arrow'],
+	            categories: [{
+	                name: 'scholar',
+	                itemStyle: {
+	                    normal: {
+	                        color: "#DDA0DD",
+	                    }
+	                }
+	            }, {
+	                name: 'paper',
+	                itemStyle: {
+	                    normal: {
+	                        color: "#6495ED",
+	                    }
+	                }
+	            }, {
+	                name: 'project',
+	                itemStyle: {
+	                    normal: {
+	                        color: "#ADD8E6",
+	                    }
+	                }
+	            }, {
+					name:'school',
+					itemStyle:{
+						normal:{
+							color: "#C71585",
+						}
+					}
+				}],
+	            label: {
+	                normal: {
+	                    show: true,
+	                    textStyle: {
+	                        fontSize: 12,
+	                    },
+	                }
+	            },
+	            force: {
+	                repulsion: 400,
+					edgeLength:[100,500]
+	            },
+	            edgeSymbolSize: [4, 50],
+	            edgeLabel: {
+	                normal: {
+	                    show: true,
+	                    textStyle: {
+	                        fontSize: 10
+	                    },
+	                    formatter: "{c}"
+	                }
+	            },
+	            nodes: nodes,
+	            links: links,
+	            lineStyle: {
+	                normal: {
+	                    opacity: 0.5,
+	                    width: 1.1,
+	                    curveness: 0,
+	                    color:"#262626",
+	                }
+	            }
+	        }
+	    ],
+	
+		
+	};
+
+	// 使用刚指定的配置项和数据显示图表。
+	myChart.setOption(option);
+
 </script>
 {% endif %}
+<script>
+
+	$(".dropdown-menu li a").click(function(){
+	   var selText = $(this).text();
+	   $(this).parents('.btn-group').find('.dropdown-toggle').html(selText+' <span class="caret"></span>');
+	   if(selText.trim()!="Other"){
+	   	$("#relation_name_input").val(selText.trim()) ;
+	   }
+	   //combobox behavior
+	   if (selText.trim()==="Other") {
+	       $("#relation_name").removeClass("hide");
+	   }
+	   else{
+	   	   $("#relation_name").addClass("hide");
+	   }
+	  
+	});
+
+
+	// $("#btnSearch").click(function(){
+	// 	alert($('.btn-select').text()+", "+$('.btn-select2').text());
+	// });
+</script>
 
 {% endblock %}

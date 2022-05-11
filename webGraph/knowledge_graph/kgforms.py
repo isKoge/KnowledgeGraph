@@ -36,12 +36,6 @@ class PaperForm(forms.Form):
     name = forms.CharField(label='题目', max_length=100, required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "基于知识图谱的学者资源管理系统"}))
     paper_source = forms.CharField(label='论文来源', max_length=50, required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "广东工业大学"}))
 
-    def clean_name(self):
-        name = self.cleaned_data.get('name')
-        if name_check(name):
-            raise forms.ValidationError('该论文节点已经存在！')
-        return name
-
     def clean_author(self):
         author = self.cleaned_data.get('author')
         if name_check(author):
@@ -65,11 +59,11 @@ class ProjectForm(forms.Form):
     originAndId = forms.CharField(label='项目归属',max_length=100, required=False,widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "第16届亚组委"}))
     application = forms.CharField(label='项目申请', max_length=100, required=True,widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "小明"}))
     
-    def clean_name(self):
-        name = self.cleaned_data.get('name')
-        if name_check(name):
-            raise forms.ValidationError('该项目节点已经存在！')
-        return name
+    # def clean_name(self):
+    #     name = self.cleaned_data.get('name')
+    #     if name_check(name):
+    #         raise forms.ValidationError('该项目节点已经存在！')
+    #     return name
 
     def clean_acc_id(self):
         acc_id = self.cleaned_data.get('acc_id')
@@ -119,11 +113,6 @@ class ProjectRelForm(ProjectForm):
 
 class SchoolNodeForm(forms.Form):
     name = forms.CharField(label='学校名称', max_length=30, required=True,widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "广东工业大学"}))
-    def clean_name(self):
-        name = self.cleaned_data.get('name')
-        if name_check(name):
-            raise forms.ValidationError('该学校节点已经存在！')
-        return name
 
 class SchoolRelForm(forms.Form):
     nameScholar = forms.CharField(label='学者名字', max_length=100, required=True)

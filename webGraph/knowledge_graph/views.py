@@ -22,6 +22,22 @@ neo_con.connectDB()
 def index(request):  # index页面需要一开始就加载的内容写在这里
 	context = {}
 	return render(request, 'kg/index.html', context)
+	
+
+# 查找实体
+def search_entity(request):
+	db = neo_con
+	searchResult = db.zhishitupu()
+	if(request.GET):
+		entity = request.GET['user_text']
+		if len(entity) != 0:
+			searchResult = db.findRelationByEntity1(entity)
+			if(len(searchResult)>0):
+				return render(request,'kg/entity.html',{'searchResult':json.dumps(searchResult,ensure_ascii=False)})
+			elif(len(searchResult)==0):
+				message = '不存在节点！'
+				return render(request,'kg/NodeManage.html',{'message':message})
+	return render(request,'kg/entity.html',{'searchResult':json.dumps(searchResult,ensure_ascii=False)}) 
 
 @login_required
 def search_relation(request):
@@ -71,7 +87,7 @@ def search_relation(request):
 
 		#若输入entity1和entity2,则输出entity1和entity2之间的最短路径
 		if(len(entity1) !=0 and len(relation) == 0 and len(entity2)!=0):
-			searchResult = db.findRelationByEntities(entity1,entity2)
+			searchResult = db.findShortestPath(entity1,entity2)
 			if(len(searchResult)>0):
 				return render(request,'kg/relation.html',{'searchResult':json.dumps(searchResult,ensure_ascii=False)})
 			elif(len(searchResult)==0):
@@ -90,6 +106,8 @@ def search_relation(request):
 			searchResult = db.findRelBy2Node(n1,n2,'scholar','scholar')
 			if len(searchResult) > 0:
 				return render(request,'kg/relation.html',{'searchResult':json.dumps(searchResult,ensure_ascii=False)})
+			elif(len(searchResult)==0):
+				return render(request,'kg/relation.html',{'ctx':ctx})
 				
 	# return render(request,'kg/relation.html',{'ctx':ctx})
 	return render(request,'kg/relation.html',{'searchResult':json.dumps(searchResult,ensure_ascii=False)})
@@ -231,7 +249,7 @@ def RelManage(request):
 		
 			if select_fun == 2:
 				print(2)
-				answer = db.createRel('scholar',n1_key,n2_type=None,n2_key=n2_key, message=message)
+				answer = db.createRel('scholar',n1_key,n2_type=None,n2_key=n2_key,label=select_type,message=message)
 				if answer:
 					message = '添加关系成功！'
 					rel = selectForm('r',select_type)
@@ -271,10 +289,10 @@ def RelManage(request):
 					return render(request,'kg/RelManage.html',{'form':form, 'message':message})
 			else:
 				answer = db.findRelBy2Node(n1_key,n2_key,'scholar')
-				print(1)
+				print(answer)
 				if answer:
 					searchResult = list(answer)
-					rel = selectForm('r',select_type)
+					rel = selectForm('r',select_type,form)
 					rel['message'] = message
 					rel['searchResult'] = json.dumps(searchResult,ensure_ascii=False)
 					return render(request,'kg/RelManage.html',rel)
@@ -297,7 +315,26 @@ def jsReturn(request):
 	nodeName = request.POST.get('data')
 	nodeType = request.POST.get('style')
 	accid = request.POST.get('accid')
-	print(accid)
+	print(nodeName,nodeType,accid)
+
+	if nodeType == '0':
+		searchResult = db.findByNode(node_type='scholar', name=nodeName, acc_id=accid)
+	elif nodeType == '1':
+		searchResult = db.findByNode(node_type='paper', name=nodeName)
+	elif nodeType == '2':
+		searchResult = db.findByNode(node_type='project', name=nodeName)
+	else:
+		searchResult = db.findByNode(node_type='school', name=nodeName)
+	answer = list(searchResult)
+	print(answer)
+	return HttpResponse(json.dumps(answer,ensure_ascii=False))
+
+# 关系管理页面Ajax请求
+def NodeReturn(request):
+	db = neo_con
+	nodeName = request.POST.get('data')
+	nodeType = request.POST.get('style')
+	print(nodeName,nodeType)
 
 	if nodeType == '0':
 		searchResult = db.findByNode(node_type='scholar', name=nodeName, acc_id=accid)
@@ -329,37 +366,42 @@ def overview(request):
 
 # 根据类型返回表单
 def selectForm(formType, select_type, form=None):
-	rel = {}
+	rel = {
+		'formScholar':ScholarForm(),
+		'formPaper':PaperNodeForm(),
+		'formProject':ProjectNodeForm(),
+		'formSchool':SchoolNodeForm(),
+		'style':0
+	}
 	if form:
 		if formType == 'n':
 			if select_type == 'ScholarManage':
 				rel['formScholar'] = form
+				rel['style'] = 0
 			elif select_type == 'PaperManage':
 				rel['formPaper'] = form
+				rel['style'] = 1
 			elif select_type == 'ProjectManage':
 				rel['formProject'] = form
+				rel['style'] = 2
 			elif select_type == 'SchoolManage':
 				rel['formSchool'] = form
+				rel['style'] = 3
 		elif formType == 'r':
+			rel = {}
 			rel['form'] = form
 	else:
 		if formType == 'n':
 			if select_type == 'ScholarManage':
-				form = ScholarForm()
-				rel['formScholar'] = form
-				# print(1)
+				rel['style'] = 0
 			elif select_type == 'PaperManage':
-				form = PaperNodeForm()
-				rel['formPaper'] = form
-
+				rel['style'] = 1
 			elif select_type == 'ProjectManage':
-				form = ProjectNodeForm()
-				rel['formProject'] = form
-
+				rel['style'] = 2
 			elif select_type == 'SchoolManage':
-				form = SchoolNodeForm()
-				rel['formSchool'] = form
+				rel['style'] = 3
 		elif formType == 'r':
+			rel = {}
 			form = RelForm()
 			rel['form'] = form
 	return rel

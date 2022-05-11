@@ -16,7 +16,7 @@ class Neo4j():
 	
 	# 输出整个知识图谱
 	def zhishitupu(self):
-		answer = self.graph.run("MATCH (n1:scholar)- [rel] -> (n2) RETURN n1,rel,n2" ).data()
+		answer = self.graph.run("MATCH (n1:scholar)- [rel] -> (n2) RETURN n1,rel,n2 limit 30" ).data()
 		return answer
 
 	# 通过实体1输出 实体1->关系->实体
@@ -41,7 +41,7 @@ class Neo4j():
 		answer = self.graph.run("MATCH (n1)- [rel] -> (n2) WHERE n2.name = \""+entity2+"\" RETURN n1,rel,n2" ).data()
 		return answer
 	
-	#根据两个实体查询它们之间的最短路径
+	#根据两个实体查询关系
 	def findRelationByEntities(self,entity1,entity2):
 		answer = self.graph.run("MATCH p=(p1:scholar {name:\"" + str(entity1) + "\"})-[*..3]-(p2:scholar{name:\""+str(entity2)+"\"}) RETURN p").to_series()
 		relationDict = []
@@ -56,6 +56,34 @@ class Neo4j():
 					tmp['n2'] = end_node
 					tmp['rel'] = x
 					relationDict.append(tmp)		
+		return relationDict
+	
+	# 输出最短路径
+	def findShortestPath(self,entity1,entity2):
+		answer = self.graph.run("MATCH (p1:scholar {name:\"" + str(entity1) + "\"}),(p2:scholar{name:\""+str(entity2)+"\"}),p=shortestpath((p1)-[*..6]-(p2)) RETURN p").evaluate()
+		
+		if(answer is None):	
+			answer = self.graph.run("MATCH (p1:scholar {name:\"" + str(entity1) + "\"}),(p2:paper {name:\""+str(entity2)+"\"}),p=shortestpath((p1)-[rel:RELATION*]-(p2)) RETURN p").evaluate()
+		if(answer is None):
+			answer = self.graph.run("MATCH (p1:scholar {name:\"" + str(entity1) + "\"}),(p2:project{name:\""+str(entity2)+"\"}),p=shortestpath((p1)-[rel:RELATION*]-(p2)) RETURN p").evaluate()
+	
+
+		relationDict = []
+		if(answer is not None):
+			for x in answer:
+				tmp = {}
+				start_node = x.start_node
+				end_node = x.end_node
+				tmp['n1'] = start_node
+				tmp['n2'] = end_node
+				tmp['rel'] = {}
+				if 'paper_id' in tmp['n2']:
+					tmp['rel']['label'] = 'Author_of_paper'
+				elif 'application' in tmp['n2']:
+					tmp['rel']['label'] = 'Author_of_project'
+				else:
+					tmp['rel']['label'] = 'work_for_school'
+				relationDict.append(tmp)		
 		return relationDict
 
 	# 根据实体名称输出实体信息
@@ -82,13 +110,15 @@ class Neo4j():
 		matcher = RelationshipMatcher(self.graph)
 		
 		n1 = self.findByNode(node_type=n1_type, **n1_key).first()
+		
 		n2 = self.findByNode(node_type=n2_type, **n2_key).first()
+		print('----',n2)
 		answer = []
-		if (n1 and n2) and (n1_key == 'scholar') and (n2_key == 'scholar'):
+		if n1 and n2 and (n1_type == 'scholar') and (n2_type == 'scholar'):
 			n1_name = n1.get('name')
 			n2_name = n2.get('name')
 			print(n1_name,n2_name)
-			searchResult = self.graph.run("MATCH p=(n1:scholar {name:\"" + n1_name + "\"})-[*..2]-(n2:scholar{name:\""+  n2_name +"\"}) RETURN p").data()	
+			searchResult = self.graph.run("MATCH p=(n1:scholar {name:\"" + n1_name + "\"})-[*..3]-(n2:scholar{name:\""+  n2_name +"\"}) RETURN p").data()	
 			if searchResult:
 				for i in searchResult:
 					a = i['p'].relationships
@@ -107,17 +137,18 @@ class Neo4j():
 			else:
 				print("1不存在此关系！")
 		else:
-			temp = {}
-			searchResult = matcher.match((n1,n2), r_type=None, **rel_message)
-			if searchResult:
-				relResult = list(searchResult)[0]
-				temp['n1'] = relResult.start_node
-				temp['n2'] = relResult.end_node
-				temp['rel'] = {}
-				temp['rel']['label'] = relResult.get('label')
-				answer.append(temp)
-			else:
-				print("2不存在此关系！")
+			if n1 and n2:
+				temp = {}
+				searchResult = matcher.match((n1,n2), r_type=None, **rel_message)
+				if searchResult:
+					relResult = list(searchResult)[0]
+					temp['n1'] = relResult.start_node
+					temp['n2'] = relResult.end_node
+					temp['rel'] = {}
+					temp['rel']['label'] = relResult.get('label')
+					answer.append(temp)
+				else:
+					print("2不存在此关系！")
 		return answer
 
 	# 创建节点
@@ -125,7 +156,8 @@ class Neo4j():
 		if ('acc_id' in node_message) and (node_message['acc_id'] == ''):
 			print(1)
 			node_message['acc_id'] = str(randint(10,10000))
-		else:
+		elif node_type == 'paper':
+			node_message['paper_id'] = str(randint(10000,100000))
 			pass
 		n = Node(node_type, **node_message)
 		self.graph.create(n)
@@ -133,19 +165,19 @@ class Neo4j():
 		return 1
 
 	# 创建关系
-	def createRel(self, n1_type, n1_key, n2_type, n2_key, **rel_message):
+	def createRel(self, n1_type, n1_key, n2_type, n2_key, label,**rel_message):
 		matcher = NodeMatcher(self.graph)
 		n1 = matcher.match(n1_type, **n1_key).first()
 		print(n2_key)
 		if n2_type:
 			n2 = matcher.match(n2_type, **n2_key).first()
+			label = ''
+			if n2_type == 'school':
+				label = 'work_for_school'
+			else:
+				label = f'Author_of_{n2_type}'
 		else:
 			n2 = matcher.match(**n2_key).first()
-		label = ''
-		if n2_type == 'school':
-			label = 'work_for_school'
-		else:
-			label = f'Author_of_{n2_type}'
 		rel_message['label'] = label 
 		one_link = Relationship(n1, label, n2, **rel_message)
 		self.graph.create(one_link)

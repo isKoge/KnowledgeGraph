@@ -30,13 +30,13 @@
             </script>
             <header class = "panel-heading">
                 节点种类：
-                    <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio1" value="option1" checked>
+                    <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio0" value="option1" checked>
                     <label class="form-check-label" for="inlineRadio1">学者</label>
 
-                    <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio2" value="option2">
+                    <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio1" value="option2">
                     <label class="form-check-label" for="inlineRadio2">论文</label>
                   
-                    <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio3" value="option3">
+                    <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio2" value="option3">
                     <label class="form-check-label" for="inlineRadio3">项目</label>
 
                     <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio3" value="option3">
@@ -44,7 +44,7 @@
             </header>
             <div class = "panel-body">
                 <!--搜索框-->
-                <form  id ="searchNodeForm0" class="form-inline"  method="POST" action="NodeManage/ScholarManage">
+                <form  id ="searchNodeForm0" class="form-inline"  method="POST" action="NodeManage/ScholarManage"style="display: none;">
                     {% csrf_token %}
                     <div class="row" >
                         <div class="col-md-4">
@@ -125,23 +125,34 @@
                         {{ formProject.originAndId }}
                     </div>
                     <div class="input-group"style="padding-top: 17px;">
-                        <span class="btn btn-primary" type="button" id="nodeSearchButton2" style="background-color:#4592fe ; padding:6px 38px" onclick="document.getElementById('searchNodeForm2').submit();">查询</span>
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end" style="padding-top: 17px;display: flex;">
+                            <div style="padding: 0px 30px 0px 95px ;"><button name="select_fun" value="1" class="btn btn-primary" type="submit" style="background-color:#4592fe ; padding:6px 38px">增加</button></div>
+                            <div style="padding: 0px 30px 0px 30px ;"><button name="select_fun" value="3" class="btn btn-primary" type="submit" style="background-color:#4592fe ; padding:6px 38px">查看</button></div>
+                            <div style="padding: 0px 30px 0px 30px ;"><button name="select_fun" value="4" class="btn btn-primary" type="submit" style="background-color:#4592fe ; padding:6px 38px">修改</button></div>
+                            <div style="padding: 0px 30px 0px 30px ;"><button name="select_fun" value="2" class="btn btn-danger" type="submit" style=" padding:6px 38px">删除</button></div>
+                        </div>
                     </div>
                 </form>
                 <form  id ="searchNodeForm3" class="form-inline" style="padding-left: 10% ; padding-right: 10%; display: none;" method="POST"action="NodeManage/SchoolManage">
                     {% csrf_token %}
                     <div class="row">
-                        <div class="col-md-8">
+                        <div class="col-md-12">
                             {{ formSchool.name }}
                         </div>
-                        <div class="col-md-4">
-                            <span class="btn btn-primary" type="button" id="nodeSearchButton3" style="background-color:#4592fe ; padding:6px 38px" onclick="document.getElementById('searchNodeForm3').submit();">查询</span>
+                        <div class="input-group"style="padding-top: 17px;margin-left: 24px;">
+                            <div class="col-md-8" style="padding-top: 17px;display: flex;">
+                                <div style="padding: 0px 30px 0px 95px ;"><button name="select_fun" value="1" class="btn btn-primary" type="submit" style="background-color:#4592fe ; padding:6px 38px">增加</button></div>
+                                <div style="padding: 0px 30px 0px 30px ;"><button name="select_fun" value="3" class="btn btn-primary" type="submit" style="background-color:#4592fe ; padding:6px 38px">查看</button></div>
+                                <div style="padding: 0px 30px 0px 30px ;"><button name="select_fun" value="4" class="btn btn-primary" type="submit" style="background-color:#4592fe ; padding:6px 38px">修改</button></div>
+                                <div style="padding: 0px 30px 0px 30px ;"><button name="select_fun" value="2" class="btn btn-danger" type="submit" style=" padding:6px 38px">删除</button></div>
+                            </div>
                         </div>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+
     {% if message %}
 	<div class = "col-md-12">
 		<div class = "panel panel-default">
@@ -163,7 +174,7 @@
             </header>
             <div class = "panel-body ">
                 <div id="graph-info" style="position: absolute;left:16px;top: 36px; z-index: 99;"></div>
-                <div id="graph" style="width: 90%;height:600px;"></div>
+                <div id="graph" style="width: 90%;height:418px;"></div>
             </div>
         </div>
     </div>
@@ -181,30 +192,33 @@
 </div>
 {% endif %}
 </div>
-</div>
-{% if searchResult %}
-    <!-- 为ECharts准备一个具备大小（宽高）的Dom -->
-    <div class = "col-md-12">
-        <div class="panel panel-default ">
-	        <header class="panel-heading">
-	            关系图 :
-	        </header>
-            <div class = "panel-body " style="position:relative;">
-				<div id="graph-info" style="position: absolute;left:0;top: 0; z-index: 99;"></div>
-                <div id="graph" style="width: 100%;height:600px;"></div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-</div>
-
+<script>
+    window.onload=()=>{
+                    var formstyle = $('.form-check-input')
+                    for(i=0; i<4; i++){
+                        (function(i){
+                            formstyle[i].onclick = function(){
+                                for(j=0; j<4; j++){
+                                    $('.form-inline')[j].style.display='none'
+                                }
+                                $('.form-inline')[i].style.display='block'
+                            }
+                        })(i)
+                    }
+					{% if style %}
+						var s = parseInt('{{ style|escapejs }}')
+						console.log(s)
+						formstyle[s].click();
+					{% else %}
+						formstyle[0].click();
+					{% endif %}
+                } 
+</script>
 {% if searchResult %}
 <script type="text/javascript">
 	var searchResult = {{searchResult|safe}}
+	console.log(searchResult)
 	//用表格列出所有的关系
-    console.log(searchResult)
-
     //echarts 数据
     var nodes = [] ;
     var links = [] ;
@@ -268,6 +282,15 @@
 
 			switch (p.data.category) {
 			case 0:
+                var name = document.getElementById('id_name');
+                var acc_id = document.getElementById('id_acc_id');
+                var degree = document.getElementById('id_degree');
+                var work_unit = document.getElementById('id_work_unit');
+                name.value = data['name'];
+                acc_id.value = data['acc_id'];
+                degree.value = data['degree'];
+                work_unit.value = data['work_unit'];
+
 				html = `  
 			<style>
 			.info-detail {
@@ -305,13 +328,156 @@
 			</div>
 			<div class="info-form">
 				<div class="info-form-row">姓名：`+ data['name'] + `</div>
-                <div class="info-form-row">id号：`+ data['acc_id'] + `</div>
+                <div class="info-form-row">id号:`+ data['acc_id'] + `</div>
 				<div class="info-form-row">单位：`+ data['work_unit'] + `</div>
 				<div class="info-form-row">职称：`+ data['scholar_title'] + `</div>
 				<div class="info-form-row">学历：`+ data['degree'] + `</div>
 				<div class="info-form-row">研究领域：`+ data['field'] + `</div>
 				<div class="info-form-row">邮箱：`+ data['email'] + `</div>
 				<div class="info-form-row" style="cursor: pointer;" onclick="window.open('`+ data['home_page'] + `')">个人主页（点击查看）</div>
+			</div>
+			</div>    
+			`
+            break;
+			case 1:
+                var name = document.getElementById('id_name')
+                var paper_source = document.getElementById('id_paper_source')
+                name.value = data['name']
+                paper_source.value = data['paper_source']
+				html = `
+				<style>
+			.info-detail {
+				width: 200px;
+				height: 300px;
+				color: rgb(255, 255, 255);
+				font-weight: 3000;
+				user-select: none;
+			}
+
+			.info-title {
+				background-color: rgba(46, 82, 112, 0.7);
+				height: 65px;
+				line-height: 65px;
+				text-align: center;
+				font-size: large;
+			}
+
+			.info-form {
+				background-color: rgba(133, 154, 171, 0.8);
+			}
+
+			.info-form-row {
+				height: 48px;
+				line-height: 48px;
+				padding: 0 15px;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+			</style>
+				<div class='info-detail'>
+				<div class="info-title">
+					论文信息
+				</div>
+			<div class="info-form">
+				<div class="info-form-row">名称：`+ data['name'] + `</div>
+				<div class="info-form-row">id：`+ data['paper_id'] + `</div>
+				<div class="info-form-row">来源：`+ data['paper_source'] + `</div>
+			</div>
+			</div>    
+			`
+			break;
+			case 2:
+                name = document.getElementById('id_name')
+                application = document.getElementById('id_application')
+                originAndId = document.getElementById('id_originAndId')
+                name.value = data['name']
+                application.value = data['application']
+                originAndId.value = data['originAndId']
+				html = `
+				<style>
+			.info-detail {
+				width: 200px;
+				height: 300px;
+				color: rgb(255, 255, 255);
+				font-weight: 3000;
+				user-select: none;
+			}
+
+			.info-title {
+				background-color: rgba(46, 82, 112, 0.7);
+				height: 65px;
+				line-height: 65px;
+				text-align: center;
+				font-size: large;
+			}
+
+			.info-form {
+				background-color: rgba(133, 154, 171, 0.8);
+			}
+
+			.info-form-row {
+				height: 48px;
+				line-height: 48px;
+				padding: 0 15px;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+			</style>
+				<div class='info-detail'>
+				<div class="info-title">
+					项目信息
+				</div>
+			<div class="info-form">
+				<div class="info-form-row">名称：`+ data['name'] + `</div>
+				<div class="info-form-row">申请：`+ data['application'] + `</div>
+				<div class="info-form-row">来源：`+ data['originAndId'] + `</div>
+				<div class="info-form-row">成员：`+ data['participant'] + `</div>
+			</div>
+			</div>    
+			`
+			break;
+			case 3:
+                name = document.getElementById('id_name')
+                name.value = data['name']
+				html = `
+				<style>
+			.info-detail {
+				width: 200px;
+				height: 300px;
+				color: rgb(255, 255, 255);
+				font-weight: 3000;
+				user-select: none;
+			}
+
+			.info-title {
+				background-color: rgba(46, 82, 112, 0.7);
+				height: 65px;
+				line-height: 65px;
+				text-align: center;
+				font-size: large;
+			}
+
+			.info-form {
+				background-color: rgba(133, 154, 171, 0.8);
+			}
+
+			.info-form-row {
+				height: 48px;
+				line-height: 48px;
+				padding: 0 15px;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+			</style>
+				<div class='info-detail'>
+				<div class="info-title">
+					学校信息
+				</div>
+			<div class="info-form">
+				<div class="info-form-row">名称：`+ data['name'] + `</div>
 			</div>
 			</div>    
 			`
@@ -421,26 +587,4 @@
 
 </script>
 {% endif %}
-<script>
-    window.onload=()=>{
-                    var formstyle = $('.form-check-input')
-                    for(i=0; i<4; i++){
-                        (function(i){
-                            formstyle[i].onclick = function(){
-                                for(j=0; j<4; j++){
-                                    $('.form-inline')[j].style.display='none'
-                                }
-                                $('.form-inline')[i].style.display='block'
-                            }
-                        })(i)
-                    }
-                }
-    // var m = {{message|safe}};
-    // console.log(m)
-    // if (alert(m)){
-    //     console.log('______________')
-    //     window.location.href='/kg/NodeManage'
-    // }
-</script>
-
 {% endblock %}

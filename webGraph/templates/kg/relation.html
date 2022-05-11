@@ -37,8 +37,6 @@
 			                <li><a href="#">Author_of_paper</a></li>
 			                <li><a href="#">Author_of_project</a></li>
 							<li><a href="#">cooperation</a></li>
-			                <li class="divider"></li>
-			                <li><a href="#"><span class="glyphicon glyphicon-star"></span>Other</a></li>
 			            </ul>
 			        </div>
 			        <!--dropdown combobox end-->
@@ -222,11 +220,14 @@
 	
     myChart.on('click',(p)=>{
 		var info = $('#graph-info')
+		console.log(p)
+		console.log('------',p.data.acc_id)
 		$.post("/kg/js",
 		{
 			csrf_token:'{{ csrf_token }}',
 			data:p.data.name,
-			style:p.data.category
+			style:p.data.category,
+			accid:p.data.acc_id,
 		},
   		function(data,status){
 			console.log("Data: " + data + "\nStatus: " + status);
@@ -238,6 +239,8 @@
 
 			switch (p.data.category) {
 			case 0:
+				var name = document.getElementById('entity1_text')
+                name.value = data['name']
 				html = `  
 			<style>
 			.info-detail {
@@ -284,8 +287,137 @@
 			</div>
 			</div>    
 			`
+			break;
+			case 1:
+				html = `
+				<style>
+			.info-detail {
+				width: 200px;
+				height: 300px;
+				color: rgb(255, 255, 255);
+				font-weight: 3000;
+				user-select: none;
 			}
-			console.log('__________',html)
+
+			.info-title {
+				background-color: rgba(46, 82, 112, 0.7);
+				height: 65px;
+				line-height: 65px;
+				text-align: center;
+				font-size: large;
+			}
+
+			.info-form {
+				background-color: rgba(133, 154, 171, 0.8);
+			}
+
+			.info-form-row {
+				height: 48px;
+				line-height: 48px;
+				padding: 0 15px;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+			</style>
+				<div class='info-detail'>
+				<div class="info-title">
+					论文信息
+				</div>
+			<div class="info-form">
+				<div class="info-form-row">名称：`+ data['name'] + `</div>
+				<div class="info-form-row">来源：`+ data['paper_source'] + `</div>
+			</div>
+			</div>    
+			`
+			break;
+			case 2:
+				html = `
+				<style>
+			.info-detail {
+				width: 200px;
+				height: 300px;
+				color: rgb(255, 255, 255);
+				font-weight: 3000;
+				user-select: none;
+			}
+
+			.info-title {
+				background-color: rgba(46, 82, 112, 0.7);
+				height: 65px;
+				line-height: 65px;
+				text-align: center;
+				font-size: large;
+			}
+
+			.info-form {
+				background-color: rgba(133, 154, 171, 0.8);
+			}
+
+			.info-form-row {
+				height: 48px;
+				line-height: 48px;
+				padding: 0 15px;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+			</style>
+				<div class='info-detail'>
+				<div class="info-title">
+					项目信息
+				</div>
+			<div class="info-form">
+				<div class="info-form-row">名称：`+ data['name'] + `</div>
+				<div class="info-form-row">申请：`+ data['application'] + `</div>
+				<div class="info-form-row">来源：`+ data['originAndId'] + `</div>
+				<div class="info-form-row">成员：`+ data['participant'] + `</div>
+			</div>
+			</div>    
+			`
+			break;
+			case 3:
+				html = `
+				<style>
+			.info-detail {
+				width: 200px;
+				height: 300px;
+				color: rgb(255, 255, 255);
+				font-weight: 3000;
+				user-select: none;
+			}
+
+			.info-title {
+				background-color: rgba(46, 82, 112, 0.7);
+				height: 65px;
+				line-height: 65px;
+				text-align: center;
+				font-size: large;
+			}
+
+			.info-form {
+				background-color: rgba(133, 154, 171, 0.8);
+			}
+
+			.info-form-row {
+				height: 48px;
+				line-height: 48px;
+				padding: 0 15px;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+			</style>
+				<div class='info-detail'>
+				<div class="info-title">
+					学校信息
+				</div>
+			<div class="info-form">
+				<div class="info-form-row">名称：`+ data['name'] + `</div>
+			</div>
+			</div>    
+			`
+			}
 			info.html(html)
 
 		});

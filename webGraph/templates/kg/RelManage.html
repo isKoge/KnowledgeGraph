@@ -223,7 +223,8 @@
        {
            csrf_token:'{{ csrf_token }}',
            data:p.data.name,
-           style:p.data.category
+           style:p.data.category,
+           accid:p.data.acc_id,
        },
          function(data,status){
            console.log("Data: " + data + "\nStatus: " + status);
@@ -234,53 +235,196 @@
            html = ''
 
            switch (p.data.category) {
-           case 0:
-               html = `  
-           <style>
-           .info-detail {
-               width: 200px;
-               height: 300px;
-               color: rgb(255, 255, 255);
-               font-weight: 3000;
-               user-select: none;
-           }
+            case 0:
+                var name = document.getElementById('id_ScholarName');
+                var acc_id = document.getElementById('id_acc_id');
+                console.log(name)
+                name.value = data['name'];
+                acc_id.value = data['acc_id'];
+				html = `  
+			<style>
+			.info-detail {
+				width: 200px;
+				height: 300px;
+				color: rgb(255, 255, 255);
+				font-weight: 3000;
+				user-select: none;
+			}
 
-           .info-title {
-               background-color: rgba(46, 82, 112, 0.7);
-               height: 65px;
-               line-height: 65px;
-               text-align: center;
-               font-size: large;
-           }
+			.info-title {
+				background-color: rgba(46, 82, 112, 0.7);
+				height: 65px;
+				line-height: 65px;
+				text-align: center;
+				font-size: large;
+			}
 
-           .info-form {
-               background-color: rgba(133, 154, 171, 0.8);
-           }
+			.info-form {
+				background-color: rgba(133, 154, 171, 0.8);
+			}
 
-           .info-form-row {
-               height: 48px;
-               line-height: 48px;
-               padding: 0 15px;
-               overflow: hidden;
-               text-overflow: ellipsis;
-               white-space: nowrap;
-           }
-           </style>
-           <div class='info-detail'>
-           <div class="info-title">
-               学者信息
-           </div>
-           <div class="info-form">
-               <div class="info-form-row">姓名：`+ data['name'] + `</div>
-               <div class="info-form-row">单位：`+ data['work_unit'] + `</div>
-               <div class="info-form-row">职称：`+ data['scholar_title'] + `</div>
-               <div class="info-form-row">学历：`+ data['degree'] + `</div>
-               <div class="info-form-row">研究领域：`+ data['field'] + `</div>
-               <div class="info-form-row">邮箱：`+ data['email'] + `</div>
-               <div class="info-form-row" style="cursor: pointer;" onclick="window.open('`+ data['home_page'] + `')">个人主页（点击查看）</div>
-           </div>
-           </div>    
-           `
+			.info-form-row {
+				height: 48px;
+				line-height: 48px;
+				padding: 0 15px;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+			</style>
+			<div class='info-detail'>
+			<div class="info-title">
+				学者信息
+			</div>
+			<div class="info-form">
+				<div class="info-form-row">姓名：`+ data['name'] + `</div>
+                <div class="info-form-row">id号:`+ data['acc_id'] + `</div>
+				<div class="info-form-row">单位：`+ data['work_unit'] + `</div>
+				<div class="info-form-row">职称：`+ data['scholar_title'] + `</div>
+				<div class="info-form-row">学历：`+ data['degree'] + `</div>
+				<div class="info-form-row">研究领域：`+ data['field'] + `</div>
+				<div class="info-form-row">邮箱：`+ data['email'] + `</div>
+				<div class="info-form-row" style="cursor: pointer;" onclick="window.open('`+ data['home_page'] + `')">个人主页（点击查看）</div>
+			</div>
+			</div>    
+			`
+            break;
+           case 1:
+                var nodeName = document.getElementById('id_nodeName')
+                nodeName.value = data['name']
+				html = `
+				<style>
+			.info-detail {
+				width: 200px;
+				height: 300px;
+				color: rgb(255, 255, 255);
+				font-weight: 3000;
+				user-select: none;
+			}
+
+			.info-title {
+				background-color: rgba(46, 82, 112, 0.7);
+				height: 65px;
+				line-height: 65px;
+				text-align: center;
+				font-size: large;
+			}
+
+			.info-form {
+				background-color: rgba(133, 154, 171, 0.8);
+			}
+
+			.info-form-row {
+				height: 48px;
+				line-height: 48px;
+				padding: 0 15px;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+			</style>
+				<div class='info-detail'>
+				<div class="info-title">
+					论文信息
+				</div>
+			<div class="info-form">
+				<div class="info-form-row">名称：`+ data['name'] + `</div>
+                <div class="info-form-row">Paper id：`+ data['paper_id'] + `</div>
+				<div class="info-form-row">来源：`+ data['paper_source'] + `</div>
+			</div>
+			</div>    
+			`
+			break;
+			case 2:
+                var nodeName = document.getElementById('id_nodeName')
+                nodeName.value = data['name']
+				html = `
+				<style>
+			.info-detail {
+				width: 200px;
+				height: 300px;
+				color: rgb(255, 255, 255);
+				font-weight: 3000;
+				user-select: none;
+			}
+
+			.info-title {
+				background-color: rgba(46, 82, 112, 0.7);
+				height: 65px;
+				line-height: 65px;
+				text-align: center;
+				font-size: large;
+			}
+
+			.info-form {
+				background-color: rgba(133, 154, 171, 0.8);
+			}
+
+			.info-form-row {
+				height: 48px;
+				line-height: 48px;
+				padding: 0 15px;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+			</style>
+				<div class='info-detail'>
+				<div class="info-title">
+					项目信息
+				</div>
+			<div class="info-form">
+				<div class="info-form-row">名称：`+ data['name'] + `</div>
+				<div class="info-form-row">申请：`+ data['application'] + `</div>
+				<div class="info-form-row">来源：`+ data['originAndId'] + `</div>
+				<div class="info-form-row">成员：`+ data['participant'] + `</div>
+			</div>
+			</div>    
+			`
+			break;
+			case 3:
+                var nodeName = document.getElementById('id_nodeName')
+                nodeName.value = data['name']
+				html = `
+				<style>
+			.info-detail {
+				width: 200px;
+				height: 300px;
+				color: rgb(255, 255, 255);
+				font-weight: 3000;
+				user-select: none;
+			}
+
+			.info-title {
+				background-color: rgba(46, 82, 112, 0.7);
+				height: 65px;
+				line-height: 65px;
+				text-align: center;
+				font-size: large;
+			}
+
+			.info-form {
+				background-color: rgba(133, 154, 171, 0.8);
+			}
+
+			.info-form-row {
+				height: 48px;
+				line-height: 48px;
+				padding: 0 15px;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+			</style>
+				<div class='info-detail'>
+				<div class="info-title">
+					学校信息
+				</div>
+			<div class="info-form">
+				<div class="info-form-row">名称：`+ data['name'] + `</div>
+			</div>
+			</div>    
+			`
            }
            console.log('__________',html)
            info.html(html)

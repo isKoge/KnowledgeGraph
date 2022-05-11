@@ -9,6 +9,7 @@ from knowledge_graph.views import *
 app_name = 'kg'
 
 urlpatterns = [
+    re_path(r'^search_entity',search_entity, name='search_entity'),
     re_path(r'^search_relation',search_relation, name='search_relation'),
     re_path(r'^NodeManage',NodeManage, name='Node_update'),
     re_path(r'^RelManage',RelManage, name='RelManage'),
