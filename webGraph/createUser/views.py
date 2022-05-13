@@ -44,7 +44,6 @@ def login(request):
             if user is not None and user.is_active:
                 auth.login(request, user)
                 return HttpResponseRedirect(reverse('users:index', args=[user.id]))
-                # return HttpResponseRedirect(reverse('users:profile', args=[user.id]))
             else:
                 # 登录失败
                 return render(request, 'users/login.html', {'form': form, 'message':'请输入正确的密码 ！'})
@@ -118,7 +117,7 @@ def pwd_change(request, pk):
  
             else:
                 return render(request, 'users/profile_update.html', {'form': formPwd,
-                        'user': user, 'message': 'Old password is wrong Try again'})
+                        'user': user, 'message': '旧密码错误，请重新尝试！'})
     else:
         formPwd = PwdChangeForm()
  
