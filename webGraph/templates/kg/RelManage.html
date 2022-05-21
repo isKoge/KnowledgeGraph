@@ -30,7 +30,7 @@
                     {% csrf_token %}
 			    	<div id = "entity1" class="form-group" style="padding: 2%">
 			        	{{ form.ScholarName }}
-                        {{ form.Scholarname.errors }}
+                        {{ form.ScholarName.errors }}
 			 		</div>
                     <div id = "entity1id" class="form-group" style="padding: 2%">
 			        	{{ form.acc_id }}
@@ -65,6 +65,7 @@
 		</div>
 	</div>
 	{% endif %}
+
    <!--relation start-->
    {% if searchResult %}
    <!-- 为ECharts准备一个具备大小（宽高）的Dom -->
@@ -161,6 +162,7 @@
        //获取node2
        node2 = {} ;
        node2['name'] = searchResult[i]['n2']['name'] ;
+       node2['paper_id'] = searchResult[i]['n2']['paper_id'] ;
        node2['draggable'] = true ;
        if('home_page' in searchResult[i]['n2']){
            node2['category'] = 0;
@@ -174,9 +176,6 @@
        else{
            node2['category'] = 3;
        }
-
-       // //
-
 
        flag = 1 ;
        relationTarget = id.toString() ;
@@ -212,8 +211,6 @@
        }
 
    }
-
-
     // 基于准备好的dom，初始化echarts实例
    var myChart = echarts.init(document.getElementById('graph'));
    
@@ -221,10 +218,11 @@
        var info = $('#graph-info')
        $.post("/kg/js",
        {
-           csrf_token:'{{ csrf_token }}',
-           data:p.data.name,
-           style:p.data.category,
-           accid:p.data.acc_id,
+            csrf_token:'{{ csrf_token }}',
+            data:p.data.name,
+            style:p.data.category,
+            accid:p.data.acc_id?p.data.acc_id:'',
+	    	paperid:p.data.paper_id?p.data.paper_id:'',
        },
          function(data,status){
            console.log("Data: " + data + "\nStatus: " + status);

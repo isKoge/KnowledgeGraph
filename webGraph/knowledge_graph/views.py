@@ -4,6 +4,7 @@ Author    : KoGe
 Date      : 2022-04-14 15:21:24
 Message   : 
 '''
+from posixpath import split
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from knowledge_graph.models import Neo4j
@@ -29,14 +30,16 @@ def search_entity(request):
 	db = neo_con
 	searchResult = db.zhishitupu()
 	if(request.GET):
+		print('--------get---------')
 		entity = request.GET['user_text']
 		if len(entity) != 0:
 			searchResult = db.findRelationByEntity1(entity)
 			if(len(searchResult)>0):
 				return render(request,'kg/entity.html',{'searchResult':json.dumps(searchResult,ensure_ascii=False)})
 			elif(len(searchResult)==0):
+				print('-----len----0----')
 				message = '不存在节点！'
-				return render(request,'kg/NodeManage.html',{'message':message})
+				return render(request,'kg/entity.html',{'message':message})
 	return render(request,'kg/entity.html',{'searchResult':json.dumps(searchResult,ensure_ascii=False)}) 
 
 @login_required
@@ -50,8 +53,19 @@ def search_relation(request):
 		
 		entity1 = request.GET['entity1_text']
 		relation = request.GET['relation_name_text']
+		print(relation)
 		entity2 = request.GET['entity2_text']
 		searchResult = {}
+
+		#如输入两个学者查看合作节点
+		if relation == 'cooperation':
+			n1 = {'name':entity1}
+			n2 = {'name':entity2}
+			searchResult = db.findRelBy2Node(n1,n2,'scholar','scholar')
+			if len(searchResult) > 0:
+				return render(request,'kg/relation.html',{'searchResult':json.dumps(searchResult,ensure_ascii=False)})
+			elif(len(searchResult)==0):
+				return render(request,'kg/relation.html',{'ctx':ctx})
 
 		#若只输入entity1,则输出与entity1有直接关系的实体和关系
 		if(len(entity1) != 0 and len(relation) == 0 and len(entity2) == 0):
@@ -99,17 +113,14 @@ def search_relation(request):
 			#print(json.loads(json.dumps(searchResult)))
 			return render(request,'kg/relation.html',{'searchResult':json.dumps(searchResult,ensure_ascii=False)})
 
-		#如输入两个学者查看合作节点
-		if relation == 'cooperation':
-			n1 = {'name':entity1}
-			n2 = {'name':entity2}
-			searchResult = db.findRelBy2Node(n1,n2,'scholar','scholar')
-			if len(searchResult) > 0:
+		# 若输入entity1,relation,entity2，则按关系输出他们的关系
+		if(len(entity1)!=0 and len(entity2)!=0 and len(relation)!=0):
+			searchResult = db.findRelByAll(entity1,entity2,relation)
+			if(len(searchResult)>0):
 				return render(request,'kg/relation.html',{'searchResult':json.dumps(searchResult,ensure_ascii=False)})
 			elif(len(searchResult)==0):
 				return render(request,'kg/relation.html',{'ctx':ctx})
-				
-	# return render(request,'kg/relation.html',{'ctx':ctx})
+		
 	return render(request,'kg/relation.html',{'searchResult':json.dumps(searchResult,ensure_ascii=False)})
 
 @login_required
@@ -144,7 +155,7 @@ def NodeManage(request):
 				node_message1 = remove_none(node_message)
 				if db.findByNode(node_type, **node_message1):
 					print(3)
-					message = '添加节点失败，节点已经存在，请尝试修改id后添加！'
+					message = '添加节点失败，节点已经存在，请尝试修改信息后添加！'
 					rel = selectForm('n',select_type)
 					rel['message'] = message
 					return render(request,'kg/NodeManage.html',rel)	
@@ -179,7 +190,6 @@ def NodeManage(request):
 					return render(request,'kg/NodeManage.html',rel)
 			elif select_fun == 3:
 				node_message = remove_none(node_message)
-				# print('?????????search????????')
 				answer = db.findByNode(node_type, **node_message)
 				if answer:
 					# print(form.cleaned_data)
@@ -194,6 +204,7 @@ def NodeManage(request):
 					return render(request,'kg/NodeManage.html',rel)
 			else:
 				node_message = remove_none(node_message)
+				print(node_message)
 				answer = db.updateNode(node_message, node_type, name=node_name)
 				if answer:
 					if answer == 1:
@@ -235,12 +246,13 @@ def RelManage(request):
 		# projectRel: participant, accid, name
 		# schoolRel: nameScholar, accid. nameSchool
 		if form.is_valid():
-			print(form.cleaned_data)
+			# print(form.cleaned_data)
 			select_type = form.cleaned_data.get('relType')
 			scholarNode = form.cleaned_data.get('ScholarName')
 			scholarAccid = form.cleaned_data.get('acc_id')
 			toNode = form.cleaned_data.get('nodeName')
 			message = form.cleaned_data.get('message')
+			# print(select_type)
 			if scholarAccid:
 				n1_key = {'name':scholarNode,'acc_id':scholarAccid}
 			else:
@@ -250,9 +262,19 @@ def RelManage(request):
 			if select_fun == 2:
 				print(2)
 				answer = db.createRel('scholar',n1_key,n2_type=None,n2_key=n2_key,label=select_type,message=message)
-				if answer:
+				if answer == 1:
 					message = '添加关系成功！'
 					rel = selectForm('r',select_type)
+					rel['message'] = message
+					return render(request,'kg/RelManage.html',rel)
+				elif answer == 2:
+					message = '添加关系失败,节点不存在！'
+					rel = selectForm('r',select_type,form)
+					rel['message'] = message
+					return render(request,'kg/RelManage.html',rel)
+				elif answer == 3:
+					message = '添加关系失败,学者节点不止一个，请输入学者id！'
+					rel = selectForm('r',select_type,form)
 					rel['message'] = message
 					return render(request,'kg/RelManage.html',rel)
 				else:
@@ -288,7 +310,8 @@ def RelManage(request):
 					message = '删除关系失败，关系不存在！'
 					return render(request,'kg/RelManage.html',{'form':form, 'message':message})
 			else:
-				answer = db.findRelBy2Node(n1_key,n2_key,'scholar')
+				n2_type = select_type.split('_')[-1]
+				answer = db.findRelBy2Node(n1_key,n2_key,'scholar',n2_type,label=select_type)
 				print(answer)
 				if answer:
 					searchResult = list(answer)
@@ -302,8 +325,11 @@ def RelManage(request):
 					rel['message'] = message
 					return render(request,'kg/RelManage.html',rel)
 		else:
-			print(form.errors)
-			
+			print('----',form.errors)
+			message = '不存在节点！'
+			rel = selectForm('r','')
+			rel['message'] = message
+			return render(request,'kg/RelManage.html',rel)
 	else:
 		form = RelForm()
 	return render(request, 'kg/RelManage.html', {'form':form})
@@ -315,12 +341,13 @@ def jsReturn(request):
 	nodeName = request.POST.get('data')
 	nodeType = request.POST.get('style')
 	accid = request.POST.get('accid')
+	paperid = request.POST.get('paperid')
 	print(nodeName,nodeType,accid)
 
 	if nodeType == '0':
 		searchResult = db.findByNode(node_type='scholar', name=nodeName, acc_id=accid)
 	elif nodeType == '1':
-		searchResult = db.findByNode(node_type='paper', name=nodeName)
+		searchResult = db.findByNode(node_type='paper', name=nodeName, paper_id=paperid)
 	elif nodeType == '2':
 		searchResult = db.findByNode(node_type='project', name=nodeName)
 	else:
@@ -334,6 +361,7 @@ def NodeReturn(request):
 	db = neo_con
 	nodeName = request.POST.get('data')
 	nodeType = request.POST.get('style')
+	accid = request.POST.get('accid')
 	print(nodeName,nodeType)
 
 	if nodeType == '0':

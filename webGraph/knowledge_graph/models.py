@@ -58,16 +58,21 @@ class Neo4j():
 					relationDict.append(tmp)		
 		return relationDict
 	
+	#根据3个信息输出关系
+	def findRelByAll(self,entity1,entity2,relation):
+		answer = self.graph.run("MATCH (n1:scholar {name:\"" + entity1 + "\"})-[rel:" + relation + "]->(n2{name:\"" + entity2 + "\"}) RETURN n1,rel,n2").data()
+		return answer
+	
 	# 输出最短路径
 	def findShortestPath(self,entity1,entity2):
 		answer = self.graph.run("MATCH (p1:scholar {name:\"" + str(entity1) + "\"}),(p2:scholar{name:\""+str(entity2)+"\"}),p=shortestpath((p1)-[*..6]-(p2)) RETURN p").evaluate()
 		
 		if(answer is None):	
-			answer = self.graph.run("MATCH (p1:scholar {name:\"" + str(entity1) + "\"}),(p2:paper {name:\""+str(entity2)+"\"}),p=shortestpath((p1)-[rel:RELATION*]-(p2)) RETURN p").evaluate()
+			answer = self.graph.run("MATCH (p1:scholar {name:\"" + str(entity1) + "\"}),(p2:paper{name:\""+str(entity2)+"\"}),p=shortestpath((p1)-[*..6]-(p2)) RETURN p").evaluate()
 		if(answer is None):
-			answer = self.graph.run("MATCH (p1:scholar {name:\"" + str(entity1) + "\"}),(p2:project{name:\""+str(entity2)+"\"}),p=shortestpath((p1)-[rel:RELATION*]-(p2)) RETURN p").evaluate()
+			answer = self.graph.run("MATCH (p1:scholar {name:\"" + str(entity1) + "\"}),(p2:project{name:\""+str(entity2)+"\"}),p=shortestpath((p1)-[*..6]-(p2)) RETURN p").evaluate()
 	
-
+		print(answer)
 		relationDict = []
 		if(answer is not None):
 			for x in answer:
@@ -108,11 +113,9 @@ class Neo4j():
 	# 根据两个节点查找关系，可查阅两个学者关系
 	def findRelBy2Node(self, n1_key, n2_key, n1_type=None, n2_type=None, **rel_message):
 		matcher = RelationshipMatcher(self.graph)
-		
 		n1 = self.findByNode(node_type=n1_type, **n1_key).first()
-		
 		n2 = self.findByNode(node_type=n2_type, **n2_key).first()
-		print('----',n2)
+		print('---------n2--------',n2)
 		answer = []
 		if n1 and n2 and (n1_type == 'scholar') and (n2_type == 'scholar'):
 			n1_name = n1.get('name')
@@ -138,6 +141,7 @@ class Neo4j():
 				print("1不存在此关系！")
 		else:
 			if n1 and n2:
+				print('++++',n2)
 				temp = {}
 				searchResult = matcher.match((n1,n2), r_type=None, **rel_message)
 				if searchResult:
@@ -167,28 +171,37 @@ class Neo4j():
 	# 创建关系
 	def createRel(self, n1_type, n1_key, n2_type, n2_key, label,**rel_message):
 		matcher = NodeMatcher(self.graph)
-		n1 = matcher.match(n1_type, **n1_key).first()
-		print(n2_key)
-		if n2_type:
-			n2 = matcher.match(n2_type, **n2_key).first()
-			label = ''
-			if n2_type == 'school':
-				label = 'work_for_school'
+		n1 = matcher.match(n1_type, **n1_key)
+		if len(list(n1)) == 1:
+			print(n2_key)
+			if n2_type:
+				n2 = matcher.match(n2_type, **n2_key).first()
+				label = ''
+				if n2_type == 'school':
+					label = 'work_for_school'
+				else:
+					label = f'Author_of_{n2_type}'
 			else:
-				label = f'Author_of_{n2_type}'
+				n2 = matcher.match(**n2_key).first()
+			rel_message['label'] = label 
+			one_link = Relationship(n1, label, n2, **rel_message)
+			self.graph.create(one_link)
+			print('创建关系成功！')
+			return 1
+		elif len(list(n1)) == 0:
+			return 2
 		else:
-			n2 = matcher.match(**n2_key).first()
-		rel_message['label'] = label 
-		one_link = Relationship(n1, label, n2, **rel_message)
-		self.graph.create(one_link)
-		print('创建关系成功！')
-		return 1
-		
+			return 3
 	# 修改节点信息
 	def updateNode(self, update_message, node_type=None, **node_key):
+		if node_type == 'scholar':
+			node_key['acc_id'] = update_message['acc_id']
+		if node_type == 'paper':
+			node_key['paper_id'] = update_message['paper_id']
 		answer = self.findByNode(node_type, **node_key)
 		if answer:
 			searchResult = list(answer)
+			print(searchResult)
 			if len(searchResult) == 1:
 				for k,v in update_message.items():
 					searchResult[0][k] = v
@@ -227,7 +240,7 @@ class Neo4j():
 		n2 = self.findByNode(node_type=n2_type, **n2_key)
 		if len(list(n1)) == 1 :
 			if len(list(n2)) == 1:
-				r1 = self.findRelBy2Node(n1_key, n2_key, **rel_message)
+				r1 = self.findRelBy2Node(n1_key,n2_key,n1_type,n2_type **rel_message)
 				if len(r1) == 1:
 					n1_name = list(n1)[0].get('name')
 					n2_name = list(n2)[0].get('name')

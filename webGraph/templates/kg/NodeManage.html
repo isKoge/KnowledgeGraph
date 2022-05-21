@@ -90,11 +90,15 @@
                 <form  id ="searchNodeForm1" class="form-inline"  method="POST" style="display: none;"action="NodeManage/PaperManage" >
                     {% csrf_token %}
                     <div class="row" >
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label for="{{ formPaper.name.id_for_label }}"class="form-label">论文名</label>
                             {{ formPaper.name }}
                         </div>
-                        <div class="col-md-8">
+						<div class="col-md-3">
+                            <label for="{{ formPaper.paper_source.id_for_label }}"class="form-label">论文id</label>
+                            {{ formPaper.paper_id }}
+                        </div>
+                        <div class="col-md-6">
                             <label for="{{ formPaper.paper_source.id_for_label }}"class="form-label">论文来源</label>
                             {{ formPaper.paper_source }}
                         </div>
@@ -143,7 +147,6 @@
                             <div class="col-md-8" style="padding-top: 17px;display: flex;">
                                 <div style="padding: 0px 30px 0px 95px ;"><button name="select_fun" value="1" class="btn btn-primary" type="submit" style="background-color:#4592fe ; padding:6px 38px">增加</button></div>
                                 <div style="padding: 0px 30px 0px 30px ;"><button name="select_fun" value="3" class="btn btn-primary" type="submit" style="background-color:#4592fe ; padding:6px 38px">查看</button></div>
-                                <div style="padding: 0px 30px 0px 30px ;"><button name="select_fun" value="4" class="btn btn-primary" type="submit" style="background-color:#4592fe ; padding:6px 38px">修改</button></div>
                                 <div style="padding: 0px 30px 0px 30px ;"><button name="select_fun" value="2" class="btn btn-danger" type="submit" style=" padding:6px 38px">删除</button></div>
                             </div>
                         </div>
@@ -233,6 +236,7 @@
 		node1['category'] = 3 ;
         node1['name'] = searchResult[i]['name'] ;
 		node1['acc_id'] = searchResult[i]['acc_id'] ;
+		node1['paper_id'] = searchResult[i]['paper_id'];
         node1['draggable'] = true ;
         if('field' in searchResult[i]){
             node1['category'] = 0 ;
@@ -246,13 +250,13 @@
         var flag = 1 ;
 	
         relationTarget = id.toString() ;
-        for(var j = 0 ; j<nodes.length ;j++){
-        	if((nodes[j]['name'] === node1['name']) && (nodes[j]['acc_id'] === node1['acc_id'])){
-        		flag = 0 ;
-        		relationTarget = nodes[j]['id'] ;
-        		break ;
-        	}
-        }
+        // for(var j = 0 ; j<nodes.length ;j++){
+        // 	if((nodes[j]['name'] === node1['name']) && (nodes[j]['acc_id'] === node1['acc_id'])){
+        // 		flag = 0 ;
+        // 		relationTarget = nodes[j]['id'] ;
+        // 		break ;
+        // 	}
+        // }
 
         node1['id'] = relationTarget ; 
         if(flag === 1){
@@ -273,19 +277,28 @@
 			csrf_token:'{{ csrf_token }}',
 			data:p.data.name,
 			style:p.data.category,
-            accid:p.data.acc_id
+            accid:p.data.acc_id?p.data.acc_id:'',
+			paperid:p.data.paper_id?p.data.paper_id:'',
 		},
   		function(data,status){
 			console.log("Data: " + data + "\nStatus: " + status);
 			var data = $.parseJSON(data)[0]
 			html = ''
-
+			var forms = document.getElementsByTagName('form')
 			switch (p.data.category) {
 			case 0:
-                var name = document.getElementById('id_name');
+				
+				
+                var name = forms[0][1]
                 var acc_id = document.getElementById('id_acc_id');
                 var degree = document.getElementById('id_degree');
                 var work_unit = document.getElementById('id_work_unit');
+				// for(var i in forms){
+				// 	if(forms[i].name.val==name.val){
+						
+				// 		break
+				// 	}
+				// }
                 name.value = data['name'];
                 acc_id.value = data['acc_id'];
                 degree.value = data['degree'];
@@ -340,9 +353,11 @@
 			`
             break;
 			case 1:
-                var name = document.getElementById('id_name')
+                var name = forms[1][1]
+				var paper_id = document.getElementById('id_paper_id')
                 var paper_source = document.getElementById('id_paper_source')
                 name.value = data['name']
+				paper_id.value = data['paper_id']
                 paper_source.value = data['paper_source']
 				html = `
 				<style>
@@ -388,7 +403,7 @@
 			`
 			break;
 			case 2:
-                name = document.getElementById('id_name')
+                name = forms[2][1]
                 application = document.getElementById('id_application')
                 originAndId = document.getElementById('id_originAndId')
                 name.value = data['name']
@@ -439,7 +454,7 @@
 			`
 			break;
 			case 3:
-                name = document.getElementById('id_name')
+                name = forms[3][1]
                 name.value = data['name']
 				html = `
 				<style>

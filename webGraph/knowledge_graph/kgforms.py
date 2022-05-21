@@ -33,6 +33,7 @@ class ScholarForm(forms.Form):
 class PaperForm(forms.Form):
     author = forms.CharField(label='作者', max_length=100, required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "小明"}))
     acc_id = forms.CharField(label='作者id', max_length=10, required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "123"}))
+    paper_id = forms.CharField(label='论文id', max_length=10, required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "123"}))
     name = forms.CharField(label='题目', max_length=100, required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "基于知识图谱的学者资源管理系统"}))
     paper_source = forms.CharField(label='论文来源', max_length=50, required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "广东工业大学"}))
 
@@ -160,13 +161,13 @@ class RelForm(forms.Form):
     message = forms.CharField(label='其他信息', max_length=100, required=False, widget=forms.TextInput(attrs={'class':'form-control','placeholder':"其它信息"}))
 
 
-    def clean_ScholarName(self):
-        ScholarName = self.cleaned_data.get('ScholarName')
-        if name_check(ScholarName):
-            pass
-        else:
-            raise forms.ValidationError('学者节点不存在！')
-        return ScholarName
+    # def clean_ScholarName(self):
+    #     ScholarName = self.cleaned_data.get('ScholarName')
+    #     if name_check(ScholarName):
+    #         pass
+    #     else:
+    #         raise forms.ValidationError('学者节点不存在！')
+    #     return ScholarName
     
     # def clean_acc_id(self):
     #     acc_id = self.cleaned_data.get('acc_id')

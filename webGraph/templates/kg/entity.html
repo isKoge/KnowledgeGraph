@@ -148,6 +148,7 @@
         node2 = {} ;
         node2['name'] = searchResult[i]['n2']['name'] ;
         node2['draggable'] = true ;
+		node2['paper_id'] = searchResult[i]['n2']['paper_id'];
 		if('home_page' in searchResult[i]['n2']){
             node2['category'] = 0;
         }
@@ -161,13 +162,10 @@
 			node2['category'] = 3;
 		}
 
-		// //
-
-
         flag = 1 ;
         relationTarget = id.toString() ;
         for(var j = 0 ; j<nodes.length ;j++){
-        	if(nodes[j]['name'] === node2['name']){
+        	if(nodes[j]['name'] === node2['name'] && (nodes[j]['category'] === node2['category'])){
         		flag = 0 ;
         		relationTarget = nodes[j]['id'] ;
         		break ;
@@ -212,7 +210,8 @@
 			csrf_token:'{{ csrf_token }}',
 			data:p.data.name,
 			style:p.data.category,
-			accid:p.data.acc_id,
+			accid:p.data.acc_id?p.data.acc_id:'',
+	    	paperid:p.data.paper_id?p.data.paper_id:'',
 		},
   		function(data,status){
 			console.log("Data: " + data + "\nStatus: " + status);
