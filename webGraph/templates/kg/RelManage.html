@@ -98,8 +98,8 @@
 {% if searchResult %}
 <script type="text/javascript">
    var searchResult = {{searchResult|safe}}
+
    //用表格列出所有的关系
-   console.log('----------',searchResult)
    tableData = []
    for (var i = 0 ; i < searchResult.length ; i++){
        relationData = {} ;
@@ -108,7 +108,6 @@
        relationData['entity2'] = searchResult[i]['n2']['name'] ;
        tableData.push(relationData) ;
    }
-   console.log('+++++++++',tableData)
    jQuery(function(){
        $('.table').footable({
        "columns": [{"name":"entity1",title:"Entity1"} ,
@@ -211,6 +210,7 @@
        }
 
    }
+   console.log(nodes)
     // 基于准备好的dom，初始化echarts实例
    var myChart = echarts.init(document.getElementById('graph'));
    
@@ -227,9 +227,6 @@
          function(data,status){
            console.log("Data: " + data + "\nStatus: " + status);
            var data = $.parseJSON(data)[0]
-           // for (var i in a[0]){
-           // 	info.append(a[0][i],'<br>')	 
-           // }
            html = ''
 
            switch (p.data.category) {
@@ -424,11 +421,8 @@
 			</div>    
 			`
            }
-           console.log('__________',html)
            info.html(html)
-
        });
-       
    })
    option = {
        title: {

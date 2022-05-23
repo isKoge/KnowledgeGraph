@@ -260,8 +260,8 @@ def RelManage(request):
 			n2_key = {'name':toNode}
 		
 			if select_fun == 2:
-				print(2)
-				answer = db.createRel('scholar',n1_key,n2_type=None,n2_key=n2_key,label=select_type,message=message)
+				n2_type = select_type.split('_')[-1]
+				answer = db.createRel('scholar',n1_key,n2_type=n2_type,n2_key=n2_key,label=select_type,message=message)
 				if answer == 1:
 					message = '添加关系成功！'
 					rel = selectForm('r',select_type)
@@ -285,7 +285,8 @@ def RelManage(request):
 
 			elif select_fun == 3:
 				print(3)
-				answer = db.delRel(n1_key,n2_key,'scholar',n2_type=None)
+				n2_type = select_type.split('_')[-1]
+				answer = db.delRel(n1_key,n2_key,'scholar',n2_type=n2_type)
 				if answer:
 					if answer == 1:
 						message = '删除关系成功！'
@@ -293,22 +294,25 @@ def RelManage(request):
 						rel['message'] = message
 						return render(request,'kg/RelManage.html',rel)
 					elif answer == 2:
-						message = '同名学者存在多个，请选择其中一个！'
-						searchResult = list(db.findByNode(node_type='scholar',**n1_key))
+						message = '同名学者存在多个，请输入学者id！'
 						rel = selectForm('r',select_type)
 						rel['message'] = message
-						rel['searchResult'] = json.dumps(searchResult,ensure_ascii=False)
+						return render(request,'kg/RelManage.html',rel)
+					elif answer == 4:
+						message = '学者不存在,请确认学者信息！'
+						rel = selectForm('r',select_type)
+						rel['message'] = message
 						return render(request,'kg/RelManage.html',rel)
 					else:
-						message = '同名节点存在多个，请选择其中一个！'
-						searchResult = list(db.findByNode(node_type=None,**n2_key))
+						message = '同名学术成就存在多个，请确认是否登记有误！'
 						rel = selectForm('r',select_type)
 						rel['message'] = message
-						rel['searchResult'] = json.dumps(searchResult,ensure_ascii=False)
 						return render(request,'kg/RelManage.html',rel)
 				else:
-					message = '删除关系失败，关系不存在！'
-					return render(request,'kg/RelManage.html',{'form':form, 'message':message})
+					message = '不存在待删除关系！'
+					rel = selectForm('r',select_type,form=form)
+					rel['message'] = message
+					return render(request,'kg/RelManage.html',rel)
 			else:
 				n2_type = select_type.split('_')[-1]
 				answer = db.findRelBy2Node(n1_key,n2_key,'scholar',n2_type,label=select_type)

@@ -6,6 +6,7 @@ Message   :
 '''
 from py2neo import Graph, Node, Relationship, NodeMatcher, Subgraph, RelationshipMatcher
 from random import randint
+from time import time
 class Neo4j():
 	graph = None
 	def __init__(self):
@@ -159,9 +160,9 @@ class Neo4j():
 	def createNode(self, node_type, **node_message):
 		if ('acc_id' in node_message) and (node_message['acc_id'] == ''):
 			print(1)
-			node_message['acc_id'] = str(randint(10,10000))
+			node_message['acc_id'] = str(randint(10,1000))+str(int(time()))
 		elif node_type == 'paper':
-			node_message['paper_id'] = str(randint(10000,100000))
+			node_message['paper_id'] = str(randint(1000,10000))+str(int(time()))
 			pass
 		n = Node(node_type, **node_message)
 		self.graph.create(n)
@@ -173,7 +174,8 @@ class Neo4j():
 		matcher = NodeMatcher(self.graph)
 		n1 = matcher.match(n1_type, **n1_key)
 		if len(list(n1)) == 1:
-			print(n2_key)
+			n1 = n1.first()
+			# print('----------',n2_key)
 			if n2_type:
 				n2 = matcher.match(n2_type, **n2_key).first()
 				label = ''
@@ -183,6 +185,7 @@ class Neo4j():
 					label = f'Author_of_{n2_type}'
 			else:
 				n2 = matcher.match(**n2_key).first()
+				# print('+++++++',n2)
 			rel_message['label'] = label 
 			one_link = Relationship(n1, label, n2, **rel_message)
 			self.graph.create(one_link)
@@ -251,7 +254,10 @@ class Neo4j():
 					print("不存在待删除关系！")
 			else:
 				print("节点2重复!")
-			return 3		
+				return 3
+		elif len(list(n1)) == 0:
+			print("节点1不存在！")
+			return 4		
 		else:
 			print("节点1重复!")
 			return 2
