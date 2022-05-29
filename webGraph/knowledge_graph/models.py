@@ -104,6 +104,7 @@ class Neo4j():
 
 	# 根据节点属性寻找节点
 	def findByNode(self, node_type=None, **node_key):
+		print('find----',node_key)
 		matcher = NodeMatcher(self.graph)
 		if node_type:
 			answer = matcher.match(node_type, **node_key)
@@ -178,11 +179,15 @@ class Neo4j():
 			# print('----------',n2_key)
 			if n2_type:
 				n2 = matcher.match(n2_type, **n2_key).first()
-				label = ''
-				if n2_type == 'school':
-					label = 'work_for_school'
+				if n2:
+					label = ''
+					if n2_type == 'school':
+						label = 'work_for_school'
+					else:
+						label = f'Author_of_{n2_type}'
+						print(label)
 				else:
-					label = f'Author_of_{n2_type}'
+					return 4
 			else:
 				n2 = matcher.match(**n2_key).first()
 				# print('+++++++',n2)
@@ -243,7 +248,7 @@ class Neo4j():
 		n2 = self.findByNode(node_type=n2_type, **n2_key)
 		if len(list(n1)) == 1 :
 			if len(list(n2)) == 1:
-				r1 = self.findRelBy2Node(n1_key,n2_key,n1_type,n2_type **rel_message)
+				r1 = self.findRelBy2Node(n1_key,n2_key,n1_type,n2_type,**rel_message)
 				if len(r1) == 1:
 					n1_name = list(n1)[0].get('name')
 					n2_name = list(n2)[0].get('name')

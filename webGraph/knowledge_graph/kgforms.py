@@ -13,7 +13,7 @@ from tools import *
 
 class ScholarForm(forms.Form):
     name = forms.CharField(label='学者姓名', max_length=30, required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "小明"}))
-    acc_id = forms.CharField(label='学者id', max_length=10,required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "123"}))
+    acc_id = forms.CharField(label='学者id', max_length=30,required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "123"}))
     email = forms.EmailField(label='邮箱', max_length=30, required=False, widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': "123@123.com"}))
     degree = forms.CharField(label='学位', max_length=30, required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "博士"}))
     field = forms.CharField(label='研究领域', max_length=50, required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "计算机科学与技术 , 软件工程 , 网络与信息安全"}))
@@ -32,7 +32,7 @@ class ScholarForm(forms.Form):
     #检查论文格式
 class PaperForm(forms.Form):
     author = forms.CharField(label='作者', max_length=100, required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "小明"}))
-    acc_id = forms.CharField(label='作者id', max_length=10, required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "123"}))
+    acc_id = forms.CharField(label='作者id', max_length=30, required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "123"}))
     paper_id = forms.CharField(label='论文id', max_length=10, required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "123"}))
     name = forms.CharField(label='题目', max_length=100, required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "基于知识图谱的学者资源管理系统"}))
     paper_source = forms.CharField(label='论文来源', max_length=50, required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "广东工业大学"}))
@@ -55,7 +55,7 @@ class PaperForm(forms.Form):
 
 class ProjectForm(forms.Form):
     participant = forms.CharField(label='参与者',max_length=100, required=True,widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "小明"}))
-    acc_id = forms.CharField(label='作者id', max_length=10, required=False,widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "123"}))
+    acc_id = forms.CharField(label='作者id', max_length=30, required=False,widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "123"}))
     name = forms.CharField(label='项目名字', max_length=100, required=True,widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "第16届亚运会信息发布系统咨询设计"}))
     originAndId = forms.CharField(label='项目归属',max_length=100, required=False,widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "第16届亚组委"}))
     application = forms.CharField(label='项目申请', max_length=100, required=True,widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "小明"}))
@@ -117,7 +117,7 @@ class SchoolNodeForm(forms.Form):
 
 class SchoolRelForm(forms.Form):
     nameScholar = forms.CharField(label='学者名字', max_length=100, required=True)
-    acc_id = forms.CharField(label='学者id', max_length=10, required=False)
+    acc_id = forms.CharField(label='学者id', max_length=30, required=False)
     nameSchool = forms.CharField(label='学校名称', max_length=30, required=True)
 
     def clean_nameScholar(self):
@@ -155,7 +155,7 @@ class RelForm(forms.Form):
         (c,'工作地点')
     ]
     ScholarName = forms.CharField(label='学者名字', max_length=100, required=True, widget=forms.TextInput(attrs={'class':'form-control','placeholder':"学者姓名"}))
-    acc_id = forms.CharField(label='学者id', max_length=10, required=False, widget=forms.TextInput(attrs={'class':'form-control','placeholder':"学者id"}))
+    acc_id = forms.CharField(label='学者id', max_length=30, required=False, widget=forms.TextInput(attrs={'class':'form-control','placeholder':"学者id"}))
     relType = forms.ChoiceField(choices=RELTYPE_CHOICES, widget=forms.Select(attrs={'class':'form-control','placeholder':"类型"}))
     nodeName = forms.CharField(label='节点名称', max_length=30, required=True, widget=forms.TextInput(attrs={'class':'form-control','placeholder':"学术成就"}))
     message = forms.CharField(label='其他信息', max_length=100, required=False, widget=forms.TextInput(attrs={'class':'form-control','placeholder':"其它信息"}))
