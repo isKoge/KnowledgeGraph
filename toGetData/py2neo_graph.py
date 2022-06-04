@@ -71,7 +71,10 @@ def create_link(ls, oth2id, graph):
 @return       {*}
 '''
 def makeGraph():
+    # 自定义账号密码配置，如Mysql
     g = Graph("http://localhost:7474", auth=("neo4j","123456"))
+
+    # 初始化数据库
     g.delete_all()
 
     nodeData, linkData, other2id = mergeData()
