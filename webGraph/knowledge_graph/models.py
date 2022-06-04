@@ -67,7 +67,6 @@ class Neo4j():
 	# 输出最短路径
 	def findShortestPath(self,entity1,entity2):
 		answer = self.graph.run("MATCH (p1:scholar {name:\"" + str(entity1) + "\"}),(p2:scholar{name:\""+str(entity2)+"\"}),p=shortestpath((p1)-[*..6]-(p2)) RETURN p").evaluate()
-		
 		if(answer is None):	
 			answer = self.graph.run("MATCH (p1:scholar {name:\"" + str(entity1) + "\"}),(p2:paper{name:\""+str(entity2)+"\"}),p=shortestpath((p1)-[*..6]-(p2)) RETURN p").evaluate()
 		if(answer is None):
