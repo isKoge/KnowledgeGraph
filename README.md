@@ -5,6 +5,8 @@
 -->
 # 基于知识图谱的学者资源管理系统
 > 项目代码仅供参考，项目中包含的数据只可用于学术等非商业用途。
+> 
+![img]([/assets/img/philly-magic-garden.jpg](https://github.com/isKoge/KnowledgeGraph/blob/master/README_IMG/g_system.png) "System")
 ## 关于前端样式
 >引用
 https://github.com/qq547276542/Agriculture_KnowledgeGraph
